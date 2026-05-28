@@ -47,7 +47,7 @@ export default function App() {
         }
       });
     } catch (err) {
-      setLiveLogs((prev) => [...prev, '❌ Failed connecting to auditing core daemon router.']);
+      setLiveLogs((prev) => [...prev, '❌ ERROR: ' + err.message]);
       setIsScanning(false);
     }
   };
