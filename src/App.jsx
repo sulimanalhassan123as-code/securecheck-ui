@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { Shield, ShieldAlert, Code, Network, Terminal, CheckCircle, Activity, Key } from 'lucide-react';
 
-const API_BASE = 'https://securecheck-api.onrender.com/api';
+const API_BASE = "https://securecheck-api.onrender.com/api";
 
 export default function App() {
   const [user, setUser] = React.useState(null);
