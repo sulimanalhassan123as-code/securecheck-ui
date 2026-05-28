@@ -5,6 +5,8 @@ import { Shield, ShieldAlert, Code, Network, Terminal, CheckCircle, Activity, Ke
 const API_BASE = 'https://securecheck-api.onrender.com/api';
 
 export default function App() {
+  const [user, setUser] = React.useState(null);
+  const [emailInput, setEmailInput] = React.useState("");
   const [activeTab, setActiveTab] = useState('network');
   const [targetUrl, setTargetUrl] = useState('');
   const [codeSnippet, setCodeSnippet] = useState('');
