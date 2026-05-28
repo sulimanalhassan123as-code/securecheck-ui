@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 import { Shield, ShieldAlert, Code, Network, Terminal, CheckCircle, Activity, Key } from 'lucide-react';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://securecheck-api.onrender.com/api';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('network');
@@ -15,7 +15,7 @@ export default function App() {
   const [findings, setFindings] = useState([]);
 
   useEffect(() => {
-    const socket = io('http://localhost:5000');
+    const socket = io('https://securecheck-api.onrender.com');
     return () => { socket.disconnect(); };
   }, []);
 
@@ -35,7 +35,7 @@ export default function App() {
       });
       const data = await res.json();
       
-      const socket = io('http://localhost:5000');
+      const socket = io('https://securecheck-api.onrender.com');
       socket.on(`scan-logs:${data.scanId}`, (log) => {
         if (log.isFinished) {
           fetchScanResults(data.scanId);
