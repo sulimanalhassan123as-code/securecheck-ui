@@ -95,7 +95,10 @@ export default function App() {
         </div>
         <div className="flex bg-[#1f2937] p-1 rounded-lg border border-gray-700">
           <button 
-        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+          <div className="mt-4 p-4 rounded-lg bg-gray-900 border border-gray-800">
+            {isLoading && <p className="text-blue-400 text-sm">⏳ {debugStatus}</p>}
+            {errorMessage && <p className="text-red-500 text-sm">❌ {errorMessage}</p>}
+          </div>
         {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
             onClick={() => setActiveTab('network')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'network' ? 'bg-emerald-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
@@ -103,7 +106,10 @@ export default function App() {
             <Network className="w-4 h-4" /> Network Shield
           </button>
           <button 
-        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+          <div className="mt-4 p-4 rounded-lg bg-gray-900 border border-gray-800">
+            {isLoading && <p className="text-blue-400 text-sm">⏳ {debugStatus}</p>}
+            {errorMessage && <p className="text-red-500 text-sm">❌ {errorMessage}</p>}
+          </div>
         {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
             onClick={() => setActiveTab('code')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'code' ? 'bg-emerald-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
@@ -131,7 +137,10 @@ export default function App() {
                 />
               </div>
               <button 
-        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+          <div className="mt-4 p-4 rounded-lg bg-gray-900 border border-gray-800">
+            {isLoading && <p className="text-blue-400 text-sm">⏳ {debugStatus}</p>}
+            {errorMessage && <p className="text-red-500 text-sm">❌ {errorMessage}</p>}
+          </div>
         {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
                 type="submit" 
                 disabled={isScanning}
@@ -165,7 +174,10 @@ export default function App() {
                 />
               </div>
               <button 
-        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+          <div className="mt-4 p-4 rounded-lg bg-gray-900 border border-gray-800">
+            {isLoading && <p className="text-blue-400 text-sm">⏳ {debugStatus}</p>}
+            {errorMessage && <p className="text-red-500 text-sm">❌ {errorMessage}</p>}
+          </div>
         {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
                 type="submit" 
                 disabled={isScanning}
