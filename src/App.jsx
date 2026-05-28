@@ -95,12 +95,16 @@ export default function App() {
         </div>
         <div className="flex bg-[#1f2937] p-1 rounded-lg border border-gray-700">
           <button 
+        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+        {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
             onClick={() => setActiveTab('network')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'network' ? 'bg-emerald-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
           >
             <Network className="w-4 h-4" /> Network Shield
           </button>
           <button 
+        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+        {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
             onClick={() => setActiveTab('code')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'code' ? 'bg-emerald-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
           >
@@ -127,6 +131,8 @@ export default function App() {
                 />
               </div>
               <button 
+        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+        {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
                 type="submit" 
                 disabled={isScanning}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
@@ -159,6 +165,8 @@ export default function App() {
                 />
               </div>
               <button 
+        {isLoading && <div style={{marginTop: "10px", color: "#58a6ff"}}>⏳ {debugStatus}</div>}
+        {errorMessage && <div style={{marginTop: "10px", color: "#f85149"}}>❌ {errorMessage}</div>}
                 type="submit" 
                 disabled={isScanning}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
