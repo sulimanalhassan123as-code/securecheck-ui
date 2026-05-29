@@ -17,7 +17,7 @@ export default function App() {
   const [findings, setFindings] = useState([]);
 
   useEffect(() => {
-    const socket = io('https://securecheck-api.onrender.com');
+    const socket = io('https://securecheck-api.onrender.com', { transports: ['websocket'] });
     return () => { socket.disconnect(); };
   }, []);
 
@@ -37,7 +37,7 @@ export default function App() {
       });
       const data = await res.json();
       
-      const socket = io('https://securecheck-api.onrender.com');
+      const socket = io('https://securecheck-api.onrender.com', { transports: ['websocket'] });
       socket.on(`scan-logs:${data.scanId}`, (log) => {
         if (log.isFinished) {
           fetchScanResults(data.scanId);
