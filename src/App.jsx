@@ -17,35 +17,28 @@ export default function App() {
   const [findings, setFindings] = useState([]);
 
   useEffect(() => {
-    const socket = io('https://securecheck-api.onrender.com', { transports: ['websocket'] });
-    return () => { socket.disconnect(); };
-  }, []);
-
-  const runNetworkScan = async (e) => {
-    e.preventDefault();
-    if (!targetUrl) return;
-    setIsScanning(true);
-    setLiveLogs([]);
-    setFindings([]);
-    setCurrentScore(null);
-
-    try {
-      const res = await fetch(`${API_BASE}/scans/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: 'default-project', targetUrl })
-      });
-      const data = await res.json();
-      
-      const socket = io('https://securecheck-api.onrender.com', { transports: ['websocket'] });
-      socket.on(`scan-logs:${data.scanId}`, (log) => {
-        if (log.isFinished) {
-          fetchScanResults(data.scanId);
-          setIsScanning(false);
-        } else {
-          setLiveLogs((prev) => [...prev, log.message]);
+    setLiveLogs(['⚡ Initializing secure audit gateway...']);
+      const pollInterval = setInterval(async () => {
+        try {
+          const checkRes = await fetch(`${API_BASE}/scans/${data.scanId}`);
+          const checkData = await checkRes.json();
+          
+          if (checkData.status === 'COMPLETED') {
+            clearInterval(pollInterval);
+            setLiveLogs(prev => [...prev, '🏁 Target evaluation pipeline completed safely.']);
+            fetchScanResults(data.scanId);
+            setIsScanning(false);
+          } else if (checkData.status === 'FAILED') {
+            clearInterval(pollInterval);
+            setLiveLogs(prev => [...prev, '❌ Audit execution pipeline encountered a structural reject.']);
+            setIsScanning(false);
+          } else {
+            setLiveLogs(prev => [...prev, '⏳ Processing live diagnostics engine...']);
+          }
+        } catch (err) {
+          console.error("Polling connection glitch:", err);
         }
-      });
+      }, 2000);
     } catch (err) {
       setLiveLogs((prev) => [...prev, '❌ ERROR: ' + err.message]);
       setIsScanning(false);
