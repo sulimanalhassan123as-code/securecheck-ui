@@ -38,10 +38,6 @@ export default function App() {
           console.error("Polling connection glitch:", err);
         }
       }, 2000);
-    } catch (err) {
-      setLiveLogs((prev) => [...prev, '❌ ERROR: ' + err.message]);
-      setIsScanning(false);
-    }
   };
 
   const runCodeAnalysis = async (e) => {
