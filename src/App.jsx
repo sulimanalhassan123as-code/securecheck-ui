@@ -27,17 +27,23 @@ export default function App() {
             setLiveLogs(prev => [...prev, '🏁 Target evaluation pipeline completed safely.']);
             fetchScanResults(data.scanId);
 try {
-            if (checkData.status === 'COMPLETED') {
-              clearInterval(pollInterval);
-              setLiveLogs(prev => [...prev, '✅ Audit complete.']);
-              setIsScanning(false);
-            } else if (checkData.status === 'FAILED') {
-              clearInterval(pollInterval);
-              setLiveLogs(prev => [...prev, '❌ Audit execution pipeline encountered a structural reject.']);
-              setIsScanning(false);
-            } else {
-              setLiveLogs(prev => [...prev, '⏳ Processing live diagnostics engine...']);
+  if (checkData.status === 'COMPLETED') {
+    clearInterval(pollInterval);
+    setLiveLogs(prev => [...prev, '✅ Audit complete.']);
+    setIsScanning(false);
+  } else if (checkData.status === 'FAILED') {
+    clearInterval(pollInterval);
+    setLiveLogs(prev => [...prev, '❌ Audit execution pipeline encountered a structural reject.']);
+    setIsScanning(false);
+  } else {
+    setLiveLogs(prev => [...prev, '⏳ Processing live diagnostics engine...']);
+  }
+} catch (err) {
+  console.error("Polling connection glitch:", err);
+}
+}, 2000);
             }
+          }, 2000);
           } catch (err) {
             console.error("Polling connection glitch:", err);
           }
