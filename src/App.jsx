@@ -24,7 +24,7 @@ export default function App() {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
+        body: JSON.stringify({ targetUrl: url })
       });
 
       addLog(`📥 Response Status Code: ${response.status} (${response.statusText})`);
