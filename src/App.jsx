@@ -16,72 +16,8 @@ export default function App() {
   const [findings, setFindings] = useState([]);
 
   useEffect(() => {
-    setLiveLogs(['⚡ Initializing secure audit gateway...']);
-      const pollInterval = setInterval(async () => {
-        try {
-          const checkRes = await fetch(`${API_BASE}/scans/${data.scanId}`);
-          const checkData = await checkRes.json();
-          
-          if (checkData.status === 'COMPLETED') {
-            clearInterval(pollInterval);
-            setLiveLogs(prev => [...prev, '🏁 Target evaluation pipeline completed safely.']);
-            fetchScanResults(data.scanId);
-try {
-  if (checkData.status === 'COMPLETED') {
-    clearInterval(pollInterval);
-    setLiveLogs(prev => [...prev, '✅ Audit complete.']);
-    setIsScanning(false);
-  } else if (checkData.status === 'FAILED') {
-    clearInterval(pollInterval);
-    setLiveLogs(prev => [...prev, '❌ Audit execution pipeline encountered a structural reject.']);
-    setIsScanning(false);
-  } else {
-    setLiveLogs(prev => [...prev, '⏳ Processing live diagnostics engine...']);
-  }
-} catch (err) {
-  console.error("Polling connection glitch:", err);
-}
-}, 2000);
-            }
-          }, 2000);
-          } catch (err) {
-            console.error("Polling connection glitch:", err);
-          }
-      }, 2000);
-  };
-
-  const runCodeAnalysis = async (e) => {
-    e.preventDefault();
-    if (!codeSnippet) return;
-    setIsScanning(true);
-    setFindings([]);
-    setCurrentScore(null);
-
-    try {
-      const res = await fetch(`${API_BASE}/analyzer/scan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId: 'default-project', codeSnippet, language: selectedLanguage })
-      });
-      const data = await res.json();
-      await fetchScanResults(data.scanId);
-    } catch (err) {
-      alert('Error connecting to the AI analyzer matrix.');
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
-  const fetchScanResults = async (scanId) => {
-    try {
-      const res = await fetch(`${API_BASE}/scans/${scanId}`);
-      const data = await res.json();
-      setCurrentScore(data.securityScore);
-      setFindings(data.findings || []);
-    } catch (err) {
-      console.error('Failed retrieving compiled safety reports.', err);
-    }
-  };
+    setLiveLogs(['Initializing secure audit gateway...']);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0f1d] text-gray-100 flex flex-col">
