@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, ShieldAlert, Code, Network, Terminal, CheckCircle, Activity, Key } from 'lucide-react';
 
-const API_BASE = "https://securecheck-api.onrender.com/api";
+const API_BASE = import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
 export default function App() {
   const [user, setUser] = React.useState(null);
@@ -28,13 +28,13 @@ export default function App() {
           <h1 className="text-xl font-bold tracking-wider text-white">SECURECHECK AI</h1>
         </div>
         <div className="flex bg-[#1f2937] p-1 rounded-lg border border-gray-700">
-          <button 
+          <button
             onClick={() => setActiveTab('network')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'network' ? 'bg-emerald-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
           >
             <Network className="w-4 h-4" /> Network Shield
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('code')}
             className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${activeTab === 'code' ? 'bg-emerald-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
           >
@@ -47,21 +47,21 @@ export default function App() {
         {/* Workspace Input Control Deck Panels */}
         <div className="lg:col-span-1 bg-[#111827] border border-gray-800 rounded-xl p-5 flex flex-col gap-4">
           <h2 className="text-lg font-semibold border-b border-gray-800 pb-2 text-emerald-400">Target Configuration Deck</h2>
-          
+
           {activeTab === 'network' ? (
             <form onSubmit={runNetworkScan} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Target Domain URL</label>
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   value={targetUrl}
                   onChange={(e) => setTargetUrl(e.target.value)}
                   placeholder="https://example.com"
                   className="w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 text-gray-200"
                 />
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isScanning}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
@@ -72,7 +72,7 @@ export default function App() {
             <form onSubmit={runCodeAnalysis} className="space-y-4 flex-1 flex flex-col">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Target Language</label>
-                <select 
+                <select
                   value={selectedLanguage}
                   onChange={(e) => setSelectedLanguage(e.target.value)}
                   className="w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 text-gray-200"
@@ -85,15 +85,15 @@ export default function App() {
               </div>
               <div className="flex-1 flex flex-col">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Raw Source Logic Context</label>
-                <textarea 
+                <textarea
                   value={codeSnippet}
                   onChange={(e) => setCodeSnippet(e.target.value)}
                   placeholder="// Paste sensitive code logic vectors here for static evaluation..."
                   className="w-full flex-1 min-h-[250px] bg-[#0a0f1d] border border-gray-700 rounded-lg p-4 font-mono text-xs focus:outline-none focus:border-emerald-500 text-gray-200 resize-none"
                 />
               </div>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isScanning}
                 className="w-full bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg py-3 font-medium text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
@@ -135,7 +135,7 @@ export default function App() {
           {/* Core Vulnerability Findings Assessment Log List */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-5 flex-1 flex flex-col gap-4">
             <h3 className="text-sm font-semibold border-b border-gray-800 pb-2 text-gray-200">Threat Matrix Diagnostic Findings ({findings.length})</h3>
-            
+
             <div className="flex-1 overflow-y-auto max-h-[500px] space-y-4 pr-1">
               {findings.length === 0 && !isScanning && (
                 <div className="h-full flex flex-col items-center justify-center text-gray-500 py-12 gap-3">
@@ -163,7 +163,7 @@ export default function App() {
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 leading-relaxed">{finding.description}</p>
-                  
+
                   {finding.riskExplanation && (
                     <div className="text-[11px] bg-slate-950/40 p-2.5 rounded border border-gray-900">
                       <span className="text-amber-400 font-medium block mb-0.5">Impact Vector:</span>
