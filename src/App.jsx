@@ -53,7 +53,7 @@ export default function App() {
     setFindings([]);
 
     try {
-      const res = await fetch(`${API_BASE}/scans`, {
+      const res = await fetch(`${API_BASE}/scans/start`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
