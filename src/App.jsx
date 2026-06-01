@@ -13,7 +13,6 @@ export default function App() {
   const [currentScore, setCurrentScore] = useState(null);
   const [findings, setFindings] = useState([]);
 const [technologies, setTechnologies] = useState([]);
-const [technologies, setTechnologies] = useState([]);
 
   useEffect(() => {
     setLiveLogs(['⚡ Initializing secure audit gateway...']);
