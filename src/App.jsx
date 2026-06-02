@@ -349,7 +349,7 @@ function TechnologyStackCard({ technologies = [] }) {
   return (
     <div className="bg-[#111827] border border-gray-800 rounded-xl p-5 mt-6">
       <h3 className="text-xs text-cyan-400 uppercase mb-4 tracking-wider">
-        Technology Stack Analysis
+        Cyber-Zero Technology Intelligence
       </h3>
 
       {technologies.length === 0 ? (
