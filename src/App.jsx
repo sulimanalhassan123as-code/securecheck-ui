@@ -13,6 +13,7 @@ export default function App() {
   const [currentScore, setCurrentScore] = useState(null);
   const [findings, setFindings] = useState([]);
 const [technologies, setTechnologies] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem("securecheck_login") === "true");
 
   useEffect(() => {
     setLiveLogs(['⚡ Initializing secure audit gateway...']);
@@ -163,6 +164,23 @@ const [technologies, setTechnologies] = useState([]);
 
     setIsScanning(false);
   };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1d] text-white flex items-center justify-center">
+        <div className="bg-[#111827] p-8 rounded-xl border border-gray-700 text-center">
+          <h1 className="text-3xl font-bold mb-4">Welcome to SecureCheck AI</h1>
+          <p className="text-gray-400 mb-6">Cyber-Zero Intelligence Platform</p>
+          <button
+            onClick={() => { localStorage.setItem("securecheck_login","true"); setIsLoggedIn(true); }}
+            className="bg-emerald-600 px-6 py-3 rounded-lg"
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0f1d] text-gray-100 flex flex-col">
