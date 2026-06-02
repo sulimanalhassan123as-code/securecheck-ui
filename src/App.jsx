@@ -26,6 +26,7 @@ const [technologies, setTechnologies] = useState([]);
 
       setCurrentScore(data.securityScore || 0);
       setFindings(data.findings || []);
+      setTechnologies(["Web Server","HTTPS Enabled","Security Headers Scan"]);
 
       setLiveLogs(prev => [
         ...prev,
