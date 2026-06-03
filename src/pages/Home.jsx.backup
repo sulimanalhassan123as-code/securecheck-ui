@@ -15,42 +15,6 @@ export default function Home() {
     <div className="min-h-screen bg-[#050b1a] text-white p-6">
       <div className="max-w-7xl mx-auto">
 
-        <div className="flex items-center justify-between mb-10 border-b border-gray-800 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center">
-              🛡️
-            </div>
-
-            <div className="font-bold text-lg">
-              <span className="text-purple-400">Secure</span>Check AI
-            </div>
-          </div>
-
-          <div className="hidden md:flex gap-3">
-            <div className="px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/30">
-              Home
-            </div>
-
-            <div className="px-4 py-2 text-gray-400">
-              Workspaces
-            </div>
-
-            <div className="px-4 py-2 text-gray-400">
-              AI Assistant
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="px-3 py-1 rounded-full border border-green-500/30 text-green-400 text-xs">
-              ● System Online
-            </div>
-
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-cyan-400 flex items-center justify-center text-sm font-bold">
-              SA
-            </div>
-          </div>
-        </div>
-
         <div className="mb-10">
           <span className="px-4 py-1 rounded-full border border-cyan-500 text-cyan-400 text-xs">
             CYBER DEFENSE PLATFORM
@@ -72,7 +36,10 @@ export default function Home() {
             <Link
               key={card.name}
               to={card.path}
-              className="group bg-[#0f172a] border border-cyan-900 rounded-2xl p-6 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.25)] transition-all duration-300"
+              className="group bg-[#0f172a] border border-cyan-900
+              rounded-2xl p-6 hover:border-cyan-400
+              hover:shadow-[0_0_25px_rgba(34,211,238,0.25)]
+              transition-all duration-300"
             >
               <div className="text-5xl mb-4">
                 {card.icon}
