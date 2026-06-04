@@ -49,7 +49,11 @@ export default function AiAssistant() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message: userMessage
+          message: userMessage,
+          history: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content
+          }))
         })
       });
 
