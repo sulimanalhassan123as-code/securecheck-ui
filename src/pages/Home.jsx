@@ -81,7 +81,6 @@ export default function Home() {
           {cards.map((card) => (
             <Link
               key={card.name}
-              {card.name === "AI Assistant" && (<div className="inline-block text-xs px-2 py-1 mb-2 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">SMART & SECURE</div>)}
               to={card.path}
               className={`group bg-[#0f172a] border ${card.name === "AI Assistant" ? "border-purple-500 shadow-[0_0_25px_rgba(168,85,247,0.35)]" : "border-cyan-900"} rounded-2xl p-6 hover:border-cyan-400 hover:shadow-[0_0_25px_rgba(34,211,238,0.25)] transition-all duration-300`}
             >
@@ -89,7 +88,6 @@ export default function Home() {
 
               <h2 className="text-xl font-bold mb-2">
                 {card.name}
-              {card.name === "AI Assistant" && (<div className="inline-block text-xs px-2 py-1 mb-2 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">SMART & SECURE</div>)}
               </h2>
 
               <p className="text-gray-400 text-sm mb-4">
