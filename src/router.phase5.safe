@@ -7,7 +7,6 @@ import DomainIntelligence from "./pages/DomainIntelligence";
 import ApiIntelligence from "./pages/ApiIntelligence";
 import PaymentLab from "./pages/PaymentLab";
 import SystemManagement from "./pages/SystemManagement";
-import AiAssistant from "./pages/AiAssistant";
 
 export default function Router() {
   return (
@@ -20,7 +19,6 @@ export default function Router() {
         <Route path="/api" element={<ApiIntelligence />} />
         <Route path="/payment" element={<PaymentLab />} />
         <Route path="/system" element={<SystemManagement />} />
-        <Route path="/ai" element={<AiAssistant />} />
       </Routes>
     </BrowserRouter>
   );
