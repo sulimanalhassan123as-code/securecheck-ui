@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import DashboardStatus from "../components/DashboardStatus";
+import Footer from "../components/Footer";
 
 export default function Home() {
   const cards = [
@@ -100,10 +101,9 @@ export default function Home() {
           ))}
         </div>
 
-        <div className="mt-12 text-center text-gray-500 text-sm">
         <DashboardStatus />
-          Powered by Suleiman Alhassan
-        </div>
+
+        <Footer />
 
       </div>
     </div>
