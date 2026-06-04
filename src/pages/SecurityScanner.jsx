@@ -3,43 +3,80 @@ import ScannerForm from "../components/ScannerForm";
 import ThreatMatrix from "../components/ThreatMatrix";
 import TechnologyCard from "../components/TechnologyCard";
 
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  "https://securecheck-api.onrender.com/api";
+
 export default function SecurityScanner() {
   const [targetUrl, setTargetUrl] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [findings, setFindings] = useState([]);
   const [technologies, setTechnologies] = useState([]);
 
-  const runNetworkScan = () => {
+  const runNetworkScan = async () => {
     if (!targetUrl.trim()) {
       alert("Please enter a target URL");
       return;
     }
 
     setIsScanning(true);
+    setFindings([]);
+    setTechnologies([]);
 
-    setTimeout(() => {
-      setFindings([
-        {
-          title: "Security Headers Review",
-          severity: "Low",
-          description: "Some recommended security headers may be missing."
+    try {
+      const startRes = await fetch(`${API_BASE}/scans/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
         },
-        {
-          title: "SSL/TLS Status",
-          severity: "Info",
-          description: "HTTPS detected and certificate appears valid."
+        body: JSON.stringify({
+          targetUrl
+        })
+      });
+
+      const startData = await startRes.json();
+      const scanId = startData.scanId;
+
+      const pollInterval = setInterval(async () => {
+        try {
+          const scanRes = await fetch(
+            `${API_BASE}/scans/${scanId}`
+          );
+
+          const scanData = await scanRes.json();
+
+          if (scanData.status === "COMPLETED") {
+            clearInterval(pollInterval);
+
+            setFindings(scanData.findings || []);
+
+            setTechnologies([
+              `Security Score: ${scanData.securityScore ?? 0}`,
+              `Duration: ${scanData.durationMs ?? 0} ms`,
+              scanData.scanType || "WEB_HEADERS",
+              scanData.status
+            ]);
+
+            setIsScanning(false);
+          }
+
+          if (scanData.status === "FAILED") {
+            clearInterval(pollInterval);
+            alert("Scan failed.");
+            setIsScanning(false);
+          }
+        } catch (err) {
+          console.error(err);
+          clearInterval(pollInterval);
+          setIsScanning(false);
         }
-      ]);
+      }, 3000);
 
-      setTechnologies([
-        "React",
-        "Cloudflare",
-        "JavaScript",
-        "Tailwind CSS"
-      ]);
-
+    } catch (err) {
+      console.error(err);
+      alert("Failed to connect to SecureCheck API.");
       setIsScanning(false);
-    }, 2500);
+    }
   };
 
   return (
