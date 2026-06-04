@@ -6,12 +6,23 @@ const API_BASE =
 
 export default function AiAssistant() {
   const [message, setMessage] = useState("");
-  const [reply, setReply] = useState("");
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const sendMessage = async () => {
     if (!message.trim()) return;
 
+    const userMessage = message;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: userMessage
+      }
+    ]);
+
+    setMessage("");
     setLoading(true);
 
     try {
@@ -21,16 +32,29 @@ export default function AiAssistant() {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          message
+          message: userMessage
         })
       });
 
       const data = await res.json();
 
-      setReply(data.reply || "No response received.");
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.reply || "No response received."
+        }
+      ]);
     } catch (err) {
       console.error(err);
-      setReply("Failed to contact Cyber-Zero AI.");
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Failed to contact Cyber-Zero AI."
+        }
+      ]);
     }
 
     setLoading(false);
@@ -54,7 +78,7 @@ export default function AiAssistant() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Ask Cyber-Zero anything about cybersecurity..."
-            className="w-full min-h-[150px] bg-[#050b1a] border border-gray-700 rounded-lg p-4 text-white"
+            className="w-full min-h-[120px] bg-[#050b1a] border border-gray-700 rounded-lg p-4 text-white"
           />
 
           <button
@@ -69,11 +93,42 @@ export default function AiAssistant() {
 
         <div className="bg-[#0f172a] border border-gray-800 rounded-2xl p-6">
           <h2 className="text-purple-400 font-bold mb-4">
-            AI Response
+            Conversation
           </h2>
 
-          <div className="whitespace-pre-wrap text-gray-300">
-            {reply || "No response yet."}
+          <div className="space-y-4">
+
+            {messages.map((msg, index) => (
+              <div
+                key={index}
+                className={
+                  msg.role === "user"
+                    ? "bg-cyan-600/20 border border-cyan-500 rounded-xl p-3"
+                    : "bg-purple-600/20 border border-purple-500 rounded-xl p-3"
+                }
+              >
+                <div className="text-xs font-bold mb-2">
+                  {msg.role === "user" ? "You" : "Cyber-Zero"}
+                </div>
+
+                <div className="whitespace-pre-wrap">
+                  {msg.content}
+                </div>
+              </div>
+            ))}
+
+            {loading && (
+              <div className="bg-purple-600/20 border border-purple-500 rounded-xl p-3">
+                Cyber-Zero is thinking...
+              </div>
+            )}
+
+            {messages.length === 0 && !loading && (
+              <div className="text-gray-400">
+                No conversation yet.
+              </div>
+            )}
+
           </div>
         </div>
 
