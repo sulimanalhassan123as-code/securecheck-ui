@@ -34,7 +34,16 @@ export default function SecurityScanner() {
         })
       });
 
+      if (!startRes.ok) {
+        throw new Error("Failed to start scan");
+      }
+
       const startData = await startRes.json();
+
+      if (!startData.scanId) {
+        throw new Error("No scanId returned");
+      }
+
       const scanId = startData.scanId;
 
       const pollInterval = setInterval(async () => {
@@ -42,6 +51,10 @@ export default function SecurityScanner() {
           const scanRes = await fetch(
             `${API_BASE}/scans/${scanId}`
           );
+
+          if (!scanRes.ok) {
+            throw new Error("Failed to fetch scan");
+          }
 
           const scanData = await scanRes.json();
 
