@@ -27,12 +27,19 @@ export default function ThreatMatrix({ findings = [] }) {
                   {finding.severity}
                 </span>
               </div>
+<p className="text-sm text-gray-300 mb-3">
+  {finding.description}
+</p>
 
-              <p className="text-sm text-gray-300">
-                {finding.description}
-              </p>
-
-              <QuickFixCard finding={finding} />
+<div className="flex flex-wrap gap-2 mb-3">
+  <div className="px-3 py-1 rounded bg-cyan-600/20 border border-cyan-500 text-cyan-300 text-xs">
+    Confidence: {finding.confidence || "HIGH"}
+  </div>
+  <div className="px-3 py-1 rounded bg-purple-600/20 border border-purple-500 text-purple-300 text-xs">
+    Component: {finding.affectedComponent || "Network"}
+  </div>
+</div>
+<QuickFixCard finding={finding} />
             </div>
           ))}
         </div>
