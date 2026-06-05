@@ -61,13 +61,29 @@ export default function AiAssistant() {
 
       const data = await res.json();
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: data.reply || "No response received."
-        }
-      ]);
+     let assistantContent =
+  data.reply || "No response received.";
+
+if (data.type === "WEB_SCAN") {
+  assistantContent =
+`🔍 ${data.message}
+
+Scan ID:
+${data.scanId}`;
+}
+
+if (data.type === "CODE_ANALYSIS") {
+  assistantContent =
+    JSON.stringify(data.report, null, 2);
+}
+
+setMessages((prev) => [
+  ...prev,
+  {
+    role: "assistant",
+    content: assistantContent
+  }
+]);
     } catch (err) {
       console.error(err);
 
