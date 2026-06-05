@@ -45,7 +45,7 @@ export default function AiAssistant() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE}/assistant/chat`, {
+      const res = await fetch(`${API_BASE}/assistant-v2/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
