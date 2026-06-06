@@ -68,8 +68,10 @@ if (data.type === "WEB_SCAN") {
   assistantContent =
 `🔍 ${data.message}
 
-Scan ID:
-${data.scanId}`;
+Scan started successfully.
+
+Cyber-Zero is analyzing the target.
+Please wait for the scan report.`;
 }
 
 if (data.type === "CODE_ANALYSIS") {
