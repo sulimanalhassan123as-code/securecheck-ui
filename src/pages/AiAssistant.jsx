@@ -75,8 +75,39 @@ Cyber-Zero is analyzing the target.`;
 }
 
 if (data.type === "CODE_ANALYSIS") {
+  const report = data.report;
+
   assistantContent =
-    JSON.stringify(data.report, null, 2);
+`🛡 Security Score: ${report.securityScore}/100
+
+${report.findings?.map((f, i) => `
+Finding ${i + 1}
+━━━━━━━━━━━━━━━━━━
+
+Title: ${f.title}
+
+Severity: ${f.severity}
+
+Confidence: ${f.confidence}
+
+Component: ${f.affectedComponent}
+
+Description:
+${f.description}
+
+Risk:
+${f.riskExplanation}
+
+Recommendation:
+${f.recommendation}
+
+Secure Example:
+${f.secureCodeExample}
+
+Checklist:
+${f.checklistSteps?.join("\n• ")}
+`).join("\n")}
+`;
 }
 
 setMessages((prev) => [
