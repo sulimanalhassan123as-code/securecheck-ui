@@ -65,14 +65,45 @@ export default function AiAssistant() {
   data.reply || "No response received.";
 
 if (data.type === "WEB_SCAN") {
-  assistantContent =
+  try {
+    const scanRes = await fetch(
+      `${API_BASE}/scans/${data.scanId}`
+    );
+
+    const scanData = await scanRes.json();
+
+    assistantContent =
+`🛡 Security Score: ${scanData.securityScore}/100
+
+${scanData.findings?.map((f, i) => `
+Finding ${i + 1}
+━━━━━━━━━━━━━━━━━━
+
+Title: ${f.title}
+
+Severity: ${f.severity}
+
+Confidence: ${f.confidence}
+
+Description:
+${f.description}
+
+Risk:
+${f.riskExplanation}
+
+Recommendation:
+${f.recommendation}
+
+Secure Example:
+${f.secureCodeExample}
+`).join("\n")}
+`;
+  } catch {
+    assistantContent =
 `🔍 ${data.message}
 
-Scan ID:
-${data.scanId}
-
 Cyber-Zero is analyzing the target.`;
-}
+  }
 
 if (data.type === "CODE_ANALYSIS") {
   const report = data.report;
