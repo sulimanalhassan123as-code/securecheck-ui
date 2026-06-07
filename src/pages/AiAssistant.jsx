@@ -65,38 +65,16 @@ export default function AiAssistant() {
   data.reply || "No response received.";
 
 if (data.type === "WEB_SCAN") {
-  assistantContent =
-`🔍 Scan started successfully.
-
-Cyber-Zero is analyzing the target...
-Please wait a few seconds.`;
-
   try {
-    let scanData = null;
+    const scanRes = await fetch(
+      `${API_BASE}/scans/${data.scanId}`
+    );
 
-    for (let i = 0; i < 5; i++) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, 2000)
-      );
+    const scanData = await scanRes.json();
 
-      const scanRes = await fetch(
-        `${API_BASE}/scans/${data.scanId}`
-      );
+    assistantContent =
+`🛡 Security Score: ${scanData.securityScore}/100
 
-      scanData = await scanRes.json();
-
-      if (scanData.status === "COMPLETED") {
-        break;
-      }
-    }
-
-    if (scanData?.status === "COMPLETED") {
-      assistantContent =
-`🌐 Website Intelligence Report
-
-🛡 Security Score: ${scanData.securityScore}/100
-
-📊 Findings:
 ${scanData.findings?.map((f, i) => `
 Finding ${i + 1}
 ━━━━━━━━━━━━━━━━━━
@@ -119,23 +97,69 @@ ${f.recommendation}
 Secure Example:
 ${f.secureCodeExample}
 `).join("\n")}
-
-🎯 Estimated Security Gain:
-Implementing the recommendations may significantly improve your security posture.
 `;
-    }
-  } catch (scanErr) {
-    console.error(scanErr);
-    }
+  } catch {
+    assistantContent =
+`🔍 ${data.message}
+
+Cyber-Zero is analyzing the target.`;
+  }
 }
 
- setMessages((prev) => [
+if (data.type === "CODE_ANALYSIS") {
+  const report = data.report;
+
+  assistantContent =
+`🛡 Security Score: ${report.securityScore}/100
+
+${report.findings?.map((f, i) => `
+Finding ${i + 1}
+━━━━━━━━━━━━━━━━━━
+
+Title: ${f.title}
+
+Severity: ${f.severity}
+
+Confidence: ${f.confidence}
+
+Component: ${f.affectedComponent}
+
+Description:
+${f.description}
+
+Risk:
+${f.riskExplanation}
+
+Recommendation:
+${f.recommendation}
+
+Secure Example:
+${f.secureCodeExample}
+
+Checklist:
+${f.checklistSteps?.join("\n• ")}
+`).join("\n")}
+`;
+}
+
+setMessages((prev) => [
   ...prev,
   {
     role: "assistant",
     content: assistantContent
   }
 ]);
+    } catch (err) {
+      console.error(err);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Failed to contact Cyber-Zero AI."
+        }
+      ]);
+    }
 
     setLoading(false);
   };
