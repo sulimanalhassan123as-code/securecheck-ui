@@ -104,6 +104,7 @@ ${f.secureCodeExample}
 
 Cyber-Zero is analyzing the target.`;
   }
+}
 
 if (data.type === "CODE_ANALYSIS") {
   const report = data.report;
