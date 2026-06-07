@@ -61,29 +61,87 @@ export default function AiAssistant() {
 
       const data = await res.json();
 
-     let assistantContent =
-  data.reply || "No response received.";
+      let assistantContent =
+        data.reply || "No response received.";
 
-if (data.type === "WEB_SCAN") {
-  try {
-    const scanRes = await fetch(
-      `${API_BASE}/scans/${data.scanId}`
-    );
+      if (data.type === "WEB_SCAN") {
+        assistantContent =
+`🔍 Scan started successfully.
 
-    const scanData = await scanRes.json();
+Cyber-Zero is analyzing the target...
 
-    assistantContent =
-`🛡 Security Score: ${scanData.securityScore}/100
+Please wait while security intelligence is collected.`;
 
-${scanData.findings?.map((f, i) => `
-Finding ${i + 1}
+        try {
+          let scanData = null;
+
+          for (let attempt = 0; attempt < 10; attempt++) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 2000)
+            );
+
+            const scanRes = await fetch(
+              `${API_BASE}/scans/${data.scanId}`
+            );
+
+            scanData = await scanRes.json();
+
+            if (
+              scanData &&
+              scanData.status === "COMPLETED"
+            ) {
+              break;
+            }
+          }
+
+          if (
+            scanData &&
+            scanData.status === "COMPLETED"
+          ) {
+            const findings =
+              scanData.findings || [];
+
+            const criticalCount =
+              findings.filter(
+                (f) => f.severity === "CRITICAL"
+              ).length;
+
+            const highCount =
+              findings.filter(
+                (f) => f.severity === "HIGH"
+              ).length;
+
+            assistantContent =
+`🌐 Website Intelligence Report
+
+🎯 Target:
+${scanData.targetUrl || "Unknown"}
+
+🛡 Security Score:
+${scanData.securityScore}/100
+
+📊 Scan Status:
+${scanData.status}
+
+🚨 Critical Findings:
+${criticalCount}
+
+⚠ High Findings:
+${highCount}
+
 ━━━━━━━━━━━━━━━━━━
 
-Title: ${f.title}
+${findings.map((f, i) => `
+Finding ${i + 1}
 
-Severity: ${f.severity}
+Title:
+${f.title}
 
-Confidence: ${f.confidence}
+Severity:
+${f.severity}
+
+Confidence:
+${f.confidence}
 
 Description:
 ${f.description}
@@ -97,19 +155,28 @@ ${f.recommendation}
 Secure Example:
 ${f.secureCodeExample}
 `).join("\n")}
-`;
-  } catch {
-    assistantContent =
-`🔍 ${data.message}
 
-Cyber-Zero is analyzing the target.`;
-  }
-}
+━━━━━━━━━━━━━━━━━━
 
-if (data.type === "CODE_ANALYSIS") {
-  const report = data.report;
+📌 Improvement Opportunities
 
-  assistantContent =
+• Implement missing security headers
+• Reduce attack surface
+• Improve browser security policies
+• Harden application configuration
+• Review authentication controls
+
+🔐 Cyber-Zero Assessment Complete`;
+          }
+        } catch (scanErr) {
+          console.error(scanErr);
+        }
+      }
+
+      if (data.type === "CODE_ANALYSIS") {
+        const report = data.report;
+
+        assistantContent =
 `🛡 Security Score: ${report.securityScore}/100
 
 ${report.findings?.map((f, i) => `
@@ -140,15 +207,15 @@ Checklist:
 ${f.checklistSteps?.join("\n• ")}
 `).join("\n")}
 `;
-}
+      }
 
-setMessages((prev) => [
-  ...prev,
-  {
-    role: "assistant",
-    content: assistantContent
-  }
-]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: assistantContent
+        }
+      ]);
     } catch (err) {
       console.error(err);
 
