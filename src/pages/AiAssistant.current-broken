@@ -29,218 +29,78 @@ export default function AiAssistant() {
   ];
 
   const sendMessage = async (customMessage = null) => {
-    const userMessage = customMessage || message;
+const userMessage = customMessage || message;
 
-    if (!userMessage.trim()) return;
+if (!userMessage.trim()) return;
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: "user",
-        content: userMessage
-      }
-    ]);
+setMessages((prev) => [
+...prev,
+{
+role: "user",
+content: userMessage
+}
+]);
 
-    setMessage("");
-    setLoading(true);
+setMessage("");
+setLoading(true);
 
-    try {
-      const res = await fetch(`${API_BASE}/assistant-v2/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: userMessage,
-          history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        })
-      });
+try {
+const res = await fetch(`${API_BASE}/assistant-v2/chat`, {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+message: userMessage,
+history: messages.map((msg) => ({
+role: msg.role,
+content: msg.content
+}))
+})
+});
 
-      const data = await res.json();
+const data = await res.json();
 
-      let assistantContent =
-        data.reply || "No response received.";
+let assistantContent =
+  data.reply || "No response received.";
 
-      if (data.type === "WEB_SCAN") {
-        assistantContent =
-`🔍 Scan started successfully.
+if (data.type === "WEB_SCAN") {
+  assistantContent =
 
-Cyber-Zero is analyzing the target...
+`🔍 ${data.message}
 
-Please wait while security intelligence is collected.`;
+Scan ID:
+${data.scanId}`;
+}
 
-        try {
-          let scanData = null;
+if (data.type === "CODE_ANALYSIS") {
+  assistantContent =
+    JSON.stringify(data.report, null, 2);
+}
 
-          for (let attempt = 0; attempt < 10; attempt++) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, 2000)
-            );
+setMessages((prev) => [
+  ...prev,
+  {
+    role: "assistant",
+    content: assistantContent
+  }
+]);
 
-            const scanRes = await fetch(
-              `${API_BASE}/scans/${data.scanId}`
-            );
+} catch (err) {
+console.error(err);
 
-            scanData = await scanRes.json();
+setMessages((prev) => [
+  ...prev,
+  {
+    role: "assistant",
+    content: "Failed to contact Cyber-Zero AI."
+  }
+]);
 
-            if (
-              scanData &&
-              scanData.status === "COMPLETED"
-            ) {
-              break;
-            }
-          }
+}
 
-          if (
-            scanData &&
-            scanData.status === "COMPLETED"
-          ) {
-            const findings =
-              scanData.findings || [];
-
-            const criticalCount =
-              findings.filter(
-                (f) => f.severity === "CRITICAL"
-              ).length;
-
-            const highCount =
-              findings.filter(
-                (f) => f.severity === "HIGH"
-              ).length;
-
-            assistantContent =
-`🌐 Website Intelligence Report
-
-🎯 Target:
-${scanData.targetUrl || "Unknown"}
-
-🛡 Security Score:
-${scanData.securityScore}/100
-
-📊 Scan Status:
-${scanData.status}
-
-🚨 Critical Findings:
-${criticalCount}
-
-⚠ High Findings:
-${highCount}
-
-━━━━━━━━━━━━━━━━━━
-
-${findings.map((f, i) => `
-Finding ${i + 1}
-
-Title:
-${f.title}
-
-Severity:
-${f.severity}
-
-Confidence:
-${f.confidence}
-
-Description:
-${f.description}
-
-Risk:
-${f.riskExplanation}
-
-Recommendation:
-${f.recommendation}
-
-Secure Example:
-${f.secureCodeExample}
-`).join("\n")}
-
-━━━━━━━━━━━━━━━━━━
-
-📌 Improvement Opportunities
-
-• Implement missing security headers
-• Reduce attack surface
-• Improve browser security policies
-• Harden application configuration
-• Review authentication controls
-
-🔐 Cyber-Zero Assessment Complete`;
-          }
-        } catch (scanErr) {
-          console.error(scanErr);
-        }
-      }
-
-      if (data.type === "CODE_ANALYSIS") {
-        const report = data.report;
-
-        assistantContent =
-`🛡 Security Score: ${report.securityScore}/100
-
-${report.findings?.map((f, i) => `
-Finding ${i + 1}
-━━━━━━━━━━━━━━━━━━
-
-Title: ${f.title}
-
-Severity: ${f.severity}
-
-Confidence: ${f.confidence}
-
-Component: ${f.affectedComponent}
-
-Description:
-${f.description}
-
-Risk:
-${f.riskExplanation}
-
-Recommendation:
-${f.recommendation}
-
-Secure Example:
-${f.secureCodeExample}
-
-Checklist:
-${f.checklistSteps?.join("\n• ")}
-`).join("\n")}
-`;
-      }
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: assistantContent
-        }
-      ]);
-    } catch (err) {
-      console.error(err);
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-content: `ERROR: ${err.message}`
-
-        }
-      ]);
-    }
-
-    setLoading(false);
-  };
-
-  const copyMessage = async (text) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Copied");
-    } catch {
-      alert("Copy failed");
-    }
-  };
-
+setLoading(false);
+};
   const shareMessage = async (text) => {
     try {
       if (navigator.share) {
