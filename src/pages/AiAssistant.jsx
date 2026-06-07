@@ -127,8 +127,13 @@ Implementing the recommendations may significantly improve your security posture
   } catch (scanErr) {
     console.error(scanErr);
     }
-      ]);
-    }
+ setMessages((prev) => [
+  ...prev,
+  {
+    role: "assistant",
+    content: assistantContent
+  }
+]);
 
     setLoading(false);
   };
