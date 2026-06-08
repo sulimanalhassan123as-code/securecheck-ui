@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
+import Welcome from "./pages/Welcome";
 import SecurityScanner from "./pages/SecurityScanner";
 import TechnologyIntelligence from "./pages/TechnologyIntelligence";
 import DomainIntelligence from "./pages/DomainIntelligence";
@@ -14,7 +15,8 @@ export default function Router() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/scanner" element={<SecurityScanner />} />
+       <Route path="/welcome" element={<Welcome />} /> 
+<Route path="/scanner" element={<SecurityScanner />} />
         <Route path="/technology" element={<TechnologyIntelligence />} />
         <Route path="/domain" element={<DomainIntelligence />} />
         <Route path="/api" element={<ApiIntelligence />} />
