@@ -11,10 +11,45 @@ export default function Welcome() {
   const [level, setLevel] = useState("");
   const [purpose, setPurpose] = useState("");
   const [isConnecting, setIsConnecting] = useState(false);
+  
+  // PWA Installation States
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [canInstall, setCanInstall] = useState(false);
 
+  // Ping backend to wake up sleeping instances
   useEffect(() => {
     fetch(`${API_BASE}/system`).catch(() => {});
   }, []);
+
+  // Capture the PWA Install Prompt
+  useEffect(() => {
+    const handler = (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      setInstallPrompt(e);
+      // Update UI notify the user they can install the PWA
+      setCanInstall(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  const installCyberZero = async () => {
+    if (!installPrompt) return;
+    
+    // Show the install prompt
+    installPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const choice = await installPrompt.userChoice;
+    
+    if (choice.outcome === "accepted") {
+      setCanInstall(false); // Hide button if they accepted
+    }
+  };
 
   const continueToPlatform = () => {
     if (!name || !level || !purpose) {
@@ -36,7 +71,7 @@ export default function Welcome() {
 
   return (
     <div className="min-h-screen bg-[#0f1626] bg-gradient-to-tr from-[#0b0f19] via-[#131b30] to-[#0b0f19] text-white flex items-center justify-center p-6 relative overflow-hidden font-sans selection:bg-cyan-500 selection:text-black">
-      
+
       {/* Dynamic Cybersecurity Digital Grid Overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] opacity-30 [mask-image:radial-gradient(ellipse_60%_50%_at_50%_40%,#000_70%,transparent_100%)] pointer-events-none" />
 
@@ -46,7 +81,7 @@ export default function Welcome() {
 
       {/* Main Glassmorphism Authentication Panel */}
       <div className="relative z-10 w-full max-w-xl">
-        
+
         {/* Top Radar Scanner Decoration */}
         <div className="flex justify-center -mb-8 relative z-20">
           <div className="w-16 h-16 bg-[#0c1222] border border-slate-700 rounded-2xl shadow-xl shadow-cyan-500/20 flex items-center justify-center relative overflow-hidden">
@@ -58,24 +93,24 @@ export default function Welcome() {
         </div>
 
         <div className="bg-[#141d31]/95 backdrop-blur-xl border border-slate-700/50 rounded-[2rem] pt-12 pb-8 px-8 sm:px-10 shadow-2xl shadow-black/40">
-          
+
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/20 px-3 py-1 rounded-full mb-4">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping shadow-sm shadow-cyan-400" />
               <span className="text-[10px] font-mono font-bold text-cyan-300 tracking-widest uppercase">System Link Established</span>
             </div>
-            
+
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-2">
               Operator <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-transparent">Initialization</span>
             </h1>
-            
+
             <p className="text-slate-400 text-sm font-medium">
               Configure your Cyber-Zero environmental variables to access the intelligence matrix.
             </p>
           </div>
 
           <div className="space-y-5">
-            
+
             {/* Input: Operator Alias */}
             <div className="group">
               <label className="block mb-1.5 text-[11px] font-mono font-bold text-slate-400 uppercase tracking-widest group-focus-within:text-cyan-400 transition-colors">
@@ -134,14 +169,14 @@ export default function Welcome() {
               </div>
             </div>
 
-            {/* Action Trigger */}
-            <div className="pt-4">
+            {/* Action Triggers Grid */}
+            <div className="pt-4 flex flex-col gap-3">
               <button
                 onClick={continueToPlatform}
                 disabled={isConnecting}
                 className={`w-full relative overflow-hidden rounded-xl py-4 font-bold text-sm tracking-widest uppercase transition-all duration-300 ${
-                  isConnecting 
-                    ? "bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700" 
+                  isConnecting
+                    ? "bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-700"
                     : "bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:via-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 border border-white/10 active:scale-[0.98]"
                 }`}
               >
@@ -154,6 +189,16 @@ export default function Welcome() {
                   "Authenticate & Enter Engine"
                 )}
               </button>
+
+              {/* Dynamic PWA Installation Button */}
+              {canInstall && (
+                <button
+                  onClick={installCyberZero}
+                  className="w-full relative overflow-hidden rounded-xl py-3 font-bold text-xs tracking-widest uppercase transition-all duration-300 bg-[#0c1222] text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-500/10 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  <span className="text-lg">📱</span> Install Native Application
+                </button>
+              )}
             </div>
 
           </div>
