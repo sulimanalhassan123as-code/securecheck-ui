@@ -1,8 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import DashboardStatus from "../components/DashboardStatus";
 import Footer from "../components/Footer";
 
 export default function Home() {
+const navigate = useNavigate();
+
+useEffect(() => {
+  const onboarded =
+    localStorage.getItem("cyberzero_onboarded");
+
+  if (!onboarded) {
+    navigate("/welcome");
+  }
+}, [navigate]);
   const cards = [
     { name: "Security Scanner", path: "/scanner", icon: "🛡️", desc: "Scan websites and applications for vulnerabilities.", accent: "cyan" },
     { name: "Technology Intelligence", path: "/technology", icon: "🔬", desc: "Detect framework footprints and system architecture stacks.", accent: "cyan" },
