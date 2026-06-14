@@ -2,8 +2,180 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --sea: #0891b2;
+  --sea2: #06b6d4;
+  --sea3: #22d3ee;
+  --bg: #030f1a;
+  --bg2: #041824;
+  --border: rgba(8, 145, 178, 0.18);
+}
+
+* { box-sizing: border-box; }
+
 body {
-  background-color: #0a0f1d;
-  color: #f3f4f6;
+  background-color: var(--bg);
+  color: #f1f5f9;
+  font-family: 'Inter', sans-serif;
   overflow-x: hidden;
 }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--sea); border-radius: 4px; }
+
+/* ── LIGHT BEAM RESULT STAGE ── */
+.result-stage {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 180px;
+  margin-top: 14px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(8,145,178,0.12);
+  transition: all 0.4s ease;
+}
+
+.result-beams {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  transition: opacity 1.4s ease;
+}
+.result-beams.dim { opacity: 0.12; }
+
+.rbeam {
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to top, transparent 0%, var(--rc, rgba(8,180,220,0.5)) 50%, transparent 100%);
+  border-radius: 2px;
+  animation: rbeamup var(--rbd, 3s) ease-in-out infinite;
+  animation-delay: var(--rbdelay, 0s);
+}
+@keyframes rbeamup {
+  0%   { height: 0; opacity: 0; }
+  30%  { opacity: 1; }
+  60%  { height: 130px; opacity: 0.75; }
+  100% { height: 0; opacity: 0; }
+}
+
+.result-content { position: relative; z-index: 1; padding: 14px; }
+.result-content.hidden { display: none; }
+
+.scanning-label {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  text-align: center;
+  pointer-events: none;
+}
+.scanning-label.hidden { display: none; }
+
+.scan-ring {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(8,180,220,0.2);
+  border-top-color: #22d3ee;
+  animation: spinring 1s linear infinite;
+  margin: 0 auto 10px;
+}
+@keyframes spinring { to { transform: rotate(360deg); } }
+.scan-text { font-size: 11px; color: rgba(8,180,220,0.8); letter-spacing: 1px; font-family: monospace; }
+
+/* ── LOGIN BEAM ANIMATION ── */
+@keyframes beamrise {
+  0%   { height: 0; opacity: 0; transform: rotate(var(--br, -5deg)); }
+  25%  { opacity: 1; }
+  55%  { height: 55vh; opacity: 0.7; transform: rotate(calc(var(--br, -5deg) + 10deg)); }
+  85%  { opacity: 0.2; }
+  100% { height: 0; opacity: 0; transform: rotate(var(--br, -5deg)); }
+}
+.login-beam {
+  position: absolute;
+  bottom: -10px;
+  width: 2px;
+  background: linear-gradient(to top, rgba(8,180,220,0) 0%, rgba(8,180,220,0.4) 50%, rgba(8,180,220,0) 100%);
+  border-radius: 4px;
+  animation: beamrise var(--bd, 4s) ease-in-out infinite;
+  animation-delay: var(--bdelay, 0s);
+  transform-origin: bottom center;
+}
+
+@keyframes orbpulse {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50%       { opacity: 0.2; transform: scale(1.1); }
+}
+
+@keyframes scanline {
+  0%   { top: -3px; opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+@keyframes btnshine {
+  0%       { left: -60%; }
+  55%, 100% { left: 130%; }
+}
+
+@keyframes rotate-border {
+  to { --angle: 360deg; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 1; }
+}
+
+/* ── MODULE CARD ROTATING BORDER ── */
+@property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+
+.module-card {
+  position: relative;
+  border-radius: 18px;
+  padding: 2px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.module-card:hover { transform: translateY(-4px); }
+.module-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  z-index: 0;
+  background: conic-gradient(from var(--angle), transparent 65%, var(--glow, #0891b2) 80%, transparent 100%);
+  animation: rotate-border 2.5s linear infinite;
+}
+.module-card-inner {
+  position: relative;
+  z-index: 1;
+  border-radius: 16px;
+  background: var(--card-bg, #041824);
+  padding: 18px 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── TOPBAR ── */
+.topbar-gradient {
+  background: linear-gradient(180deg, rgba(3,15,26,0.98) 0%, rgba(3,15,26,0.95) 100%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(8,145,178,0.12);
+}
+
+/* ── FINDING CARDS ── */
+.finding-critical { border-left: 3px solid #ef4444; background: rgba(239,68,68,0.06); }
+.finding-high     { border-left: 3px solid #f59e0b; background: rgba(245,158,11,0.06); }
+.finding-medium   { border-left: 3px solid #818cf8; background: rgba(99,102,241,0.06); }
+.finding-low      { border-left: 3px solid #10b981; background: rgba(16,185,129,0.06); }
