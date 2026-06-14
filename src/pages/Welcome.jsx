@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
@@ -8,202 +8,191 @@ export default function Welcome() {
   const [name, setName] = useState("");
   const [level, setLevel] = useState("");
   const [purpose, setPurpose] = useState("");
-  const [connecting, setConnecting] = useState(false);
-  const [engineOnline, setEngineOnline] = useState(false);
-  const [greeterText, setGreeterText] = useState("");
-  const beamsRef = useRef(null);
-  const greeterDone = useRef(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [canInstall, setCanInstall] = useState(false);
 
-  // Redirect if already onboarded
   useEffect(() => {
-    if (localStorage.getItem("cyberzero_onboarded")) navigate("/");
-  }, [navigate]);
-
-  // Ping Render to wake engine
-  useEffect(() => {
-    const ping = () => {
-      fetch(API_BASE.replace("/api", "/"))
-        .then(() => setEngineOnline(true))
-        .catch(() => setTimeout(ping, 8000));
-    };
-    ping();
+    fetch(`${API_BASE}/system`).catch(() => {});
   }, []);
 
-  // Login searchlight beams
   useEffect(() => {
-    const container = beamsRef.current;
-    if (!container) return;
-    const positions = [5, 15, 25, 38, 50, 62, 72, 82, 92];
-    positions.forEach((pos, i) => {
-      const b = document.createElement("div");
-      b.className = "login-beam";
-      const rot = (i % 2 === 0 ? -1 : 1) * (2 + i * 1.5);
-      b.style.cssText = `left:${pos}%;--bd:${3 + i * 0.3}s;--bdelay:${i * 0.28}s;--br:${rot}deg;`;
-      container.appendChild(b);
-    });
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); setCanInstall(true); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  // Typewriter greeter
-  useEffect(() => {
-    if (greeterDone.current) return;
-    greeterDone.current = true;
-    const returning = localStorage.getItem("cyberzero_name");
-    const msg = returning
-      ? `Welcome back, ${returning}! 👋 Cyber-Zero is ready. What are you working on today?`
-      : "🛡 Cyber-Zero Intelligence Platform online. Configure your operator profile below to access the hub.";
-    let i = 0;
-    const t = setInterval(() => {
-      setGreeterText(msg.slice(0, ++i));
-      if (i >= msg.length) clearInterval(t);
-    }, 22);
-    return () => clearInterval(t);
-  }, []);
-
-  // Pre-fill for returning user
-  useEffect(() => {
-    const n = localStorage.getItem("cyberzero_name");
-    const l = localStorage.getItem("cyberzero_level");
-    const p = localStorage.getItem("cyberzero_purpose");
-    if (n) setName(n);
-    if (l) setLevel(l);
-    if (p) setPurpose(p);
-  }, []);
-
-  const enter = () => {
-    if (!name.trim() || !level || !purpose) {
-      alert("Please fill all fields to continue.");
-      return;
-    }
-    setConnecting(true);
-    localStorage.setItem("cyberzero_name", name.trim());
-    localStorage.setItem("cyberzero_level", level);
-    localStorage.setItem("cyberzero_purpose", purpose);
-    localStorage.setItem("cyberzero_onboarded", "true");
-    // Track session
-    const sessions = JSON.parse(localStorage.getItem("czSessions") || "[]");
-    sessions.unshift({
-      name: name.trim(), level,
-      device: /Mobi/i.test(navigator.userAgent) ? "Mobile" : "Desktop",
-      browser: getBrowser(),
-      time: new Date().toLocaleTimeString(),
-      section: "Home",
-    });
-    localStorage.setItem("czSessions", JSON.stringify(sessions.slice(0, 20)));
-    pushNotif(`🟢 ${name.trim()} entered the platform`);
-    setTimeout(() => navigate("/"), 700);
+  const installApp = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    if (choice.outcome === "accepted") setCanInstall(false);
   };
 
-  function getBrowser() {
-    const ua = navigator.userAgent;
-    if (ua.includes("Chrome")) return "Chrome";
-    if (ua.includes("Firefox")) return "Firefox";
-    if (ua.includes("Safari")) return "Safari";
-    if (ua.includes("Edge")) return "Edge";
-    return "Browser";
-  }
+  const continueToPlatform = () => {
+    if (!name || !level || !purpose) { alert("⚠️ Please fill all fields to continue."); return; }
+    setIsConnecting(true);
+    setTimeout(() => {
+      localStorage.setItem("cyberzero_name", name);
+      localStorage.setItem("cyberzero_level", level);
+      localStorage.setItem("cyberzero_purpose", purpose);
+      localStorage.setItem("cyberzero_onboarded", "true");
+      navigate("/");
+    }, 700);
+  };
 
-  function pushNotif(msg) {
-    const n = JSON.parse(localStorage.getItem("czNotifs") || "[]");
-    n.unshift({ msg, time: new Date().toLocaleTimeString() });
-    localStorage.setItem("czNotifs", JSON.stringify(n.slice(0, 50)));
-  }
+  const inputStyle = {
+    width:"100%", background:"#f8fafc", border:"1.5px solid #e2e8f0",
+    borderRadius:14, padding:"13px 16px", color:"#0f172a", fontSize:14,
+    outline:"none", fontFamily:"inherit", boxSizing:"border-box",
+    transition:"border-color 0.2s, box-shadow 0.2s"
+  };
+
+  const labelStyle = {
+    display:"block", marginBottom:6, fontSize:10, fontWeight:800,
+    color:"#64748b", letterSpacing:3, textTransform:"uppercase"
+  };
 
   return (
-    <div className="min-h-screen bg-[#030f1a] flex items-center justify-center px-4 py-8 relative overflow-hidden">
-      {/* Searchlight beams */}
-      <div ref={beamsRef} className="absolute inset-0 pointer-events-none z-0 overflow-hidden" />
-      {/* Ambient orbs */}
-      <div className="absolute top-[-80px] left-[-80px] w-[360px] h-[360px] rounded-full pointer-events-none"
-        style={{ background: "#0891b2", filter: "blur(90px)", opacity: 0.1, animation: "orbpulse 6s ease-in-out infinite" }} />
-      <div className="absolute bottom-[-60px] right-[-60px] w-[280px] h-[280px] rounded-full pointer-events-none"
-        style={{ background: "#6366f1", filter: "blur(80px)", opacity: 0.1, animation: "orbpulse 6s ease-in-out infinite 3s" }} />
+    <div style={{
+      minHeight:"100vh",
+      background:"linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 40%, #f0fdf4 70%, #faf5ff 100%)",
+      display:"flex", alignItems:"center", justifyContent:"center",
+      padding:20, fontFamily:"Inter,sans-serif", position:"relative", overflow:"hidden"
+    }}>
 
-      {/* Login card */}
-      <div className="relative z-10 w-full max-w-[400px]">
-        <div className="rounded-[26px] p-[34px_28px_28px] border border-[rgba(8,180,220,0.22)]"
-          style={{ background: "rgba(3,12,24,0.94)", backdropFilter: "blur(16px)", boxShadow: "0 0 80px rgba(8,145,178,0.1), 0 30px 60px rgba(0,0,0,0.6)" }}>
+      {/* Orbs */}
+      <div style={{ position:"absolute", top:-80, left:"20%", width:400, height:400, borderRadius:"50%", background:"radial-gradient(circle,rgba(59,130,246,0.12),transparent 70%)", pointerEvents:"none" }} />
+      <div style={{ position:"absolute", bottom:-60, right:"15%", width:350, height:350, borderRadius:"50%", background:"radial-gradient(circle,rgba(139,92,246,0.1),transparent 70%)", pointerEvents:"none" }} />
 
-          {/* Shield icon */}
-          <div className="flex justify-center mb-5">
-            <div className="w-[68px] h-[68px] rounded-[18px] flex items-center justify-center text-[28px] relative overflow-hidden"
-              style={{ background: "linear-gradient(135deg,#0891b2,#6366f1)", boxShadow: "0 0 28px rgba(8,145,178,0.45), 0 0 60px rgba(8,145,178,0.12)" }}>
-              🛡️
-              <div className="absolute top-0 left-0 w-full h-[3px]"
-                style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.85),transparent)", animation: "scanline 2.2s ease-in-out infinite" }} />
+      {/* Card */}
+      <div style={{
+        position:"relative", zIndex:1, width:"100%", maxWidth:480,
+        background:"#fff", borderRadius:28,
+        border:"1.5px solid rgba(99,102,241,0.2)",
+        boxShadow:"0 20px 60px rgba(99,102,241,0.15)",
+        overflow:"hidden"
+      }}>
+        {/* Top gradient strip */}
+        <div style={{ height:5, background:"linear-gradient(90deg,#4f46e5,#7c3aed,#0891b2)" }} />
+
+        <div style={{ padding:"36px 32px 32px" }}>
+          {/* Logo */}
+          <div style={{ textAlign:"center", marginBottom:28 }}>
+            <div style={{
+              width:64, height:64, borderRadius:20, margin:"0 auto 16px",
+              background:"linear-gradient(135deg,#4f46e5,#7c3aed,#0891b2)",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:28, boxShadow:"0 8px 24px rgba(79,70,229,0.3)"
+            }}>🛡️</div>
+            <div style={{
+              display:"inline-flex", alignItems:"center", gap:6,
+              background:"rgba(8,145,178,0.08)", border:"1px solid rgba(8,145,178,0.2)",
+              borderRadius:999, padding:"5px 14px", marginBottom:12
+            }}>
+              <span style={{ width:6, height:6, borderRadius:"50%", background:"#0891b2", display:"inline-block", animation:"pulse 2s infinite" }} />
+              <span style={{ fontSize:10, fontWeight:800, color:"#0891b2", letterSpacing:3, textTransform:"uppercase" }}>System Link Established</span>
             </div>
-          </div>
-
-          <div className="text-[22px] font-black text-center mb-1">
-            <span className="text-[#22d3ee]">Secure</span>Check AI
-          </div>
-          <div className="text-[10px] text-center tracking-[2.5px] text-white/30 mb-5">
-            CYBER-ZERO DEVELOPER HUB
-          </div>
-
-          {/* AI greeter */}
-          <div className="rounded-xl p-3 mb-4 border border-[rgba(8,180,220,0.18)] text-[12px] leading-[1.8] min-h-[46px]"
-            style={{ background: "rgba(0,0,0,0.35)", color: "#22d3ee", fontFamily: "Courier New, monospace" }}>
-            &gt; {greeterText}<span className="animate-pulse">▌</span>
-          </div>
-
-          {/* Engine status */}
-          <div className="flex items-center gap-2 text-[11px] text-white/35 rounded-lg p-2 mb-4 border border-white/5"
-            style={{ background: "rgba(255,255,255,0.02)" }}>
-            <div className={`w-2 h-2 rounded-full flex-shrink-0 ${engineOnline ? "bg-green-400" : "bg-yellow-400"}`}
-              style={{ animation: engineOnline ? "none" : "blink 1s infinite" }} />
-            {engineOnline ? "Engine online ✓" : "Waking up SecureCheck engine..."}
-          </div>
-
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex-1 h-px bg-white/6" />
-            <span className="text-[10px] text-white/25 tracking-widest uppercase">Operator Profile</span>
-            <div className="flex-1 h-px bg-white/6" />
+            <div style={{ fontSize:26, fontWeight:900, color:"#0f172a", letterSpacing:-0.5 }}>
+              Operator <span style={{ background:"linear-gradient(90deg,#4f46e5,#0891b2)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Initialization</span>
+            </div>
+            <div style={{ fontSize:13, color:"#64748b", marginTop:6 }}>Configure your environment to access the intelligence matrix.</div>
           </div>
 
           {/* Fields */}
-          {[
-            { label: "👤 Operator Alias", type: "text", val: name, set: setName, ph: "Enter your name..." },
-          ].map(({ label, type, val, set, ph }) => (
-            <div key={label} className="mb-3">
-              <label className="block text-[10px] font-bold text-white/35 tracking-[1.5px] uppercase mb-1.5">{label}</label>
-              <input type={type} value={val} onChange={e => set(e.target.value)}
-                placeholder={ph}
-                className="w-full bg-white/4 border border-[rgba(8,145,178,0.16)] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#22d3ee] focus:bg-[rgba(8,180,220,0.05)] focus:shadow-[0_0_0_3px_rgba(8,180,220,0.1)] transition-all placeholder-white/20" />
+          <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
+            <div>
+              <label style={labelStyle}>1. Operator Alias</label>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Enter your system identifier..."
+                style={inputStyle}
+                onFocus={e => { e.target.style.borderColor="#4f46e5"; e.target.style.boxShadow="0 0 0 3px rgba(79,70,229,0.1)"; }}
+                onBlur={e => { e.target.style.borderColor="#e2e8f0"; e.target.style.boxShadow="none"; }}
+              />
             </div>
-          ))}
-          <div className="mb-3">
-            <label className="block text-[10px] font-bold text-white/35 tracking-[1.5px] uppercase mb-1.5">🔰 Clearance Level</label>
-            <select value={level} onChange={e => setLevel(e.target.value)}
-              className="w-full bg-white/4 border border-[rgba(8,145,178,0.16)] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#22d3ee] transition-all appearance-none cursor-pointer"
-              style={{ background: "rgba(255,255,255,0.04)" }}>
-              <option value="" disabled>Select clearance level</option>
-              <option value="Novice">Level 1 — Novice</option>
-              <option value="Intermediate">Level 2 — Intermediate</option>
-              <option value="Elite">Level 3 — Elite</option>
-            </select>
-          </div>
-          <div className="mb-5">
-            <label className="block text-[10px] font-bold text-white/35 tracking-[1.5px] uppercase mb-1.5">🎯 Deployment Purpose</label>
-            <select value={purpose} onChange={e => setPurpose(e.target.value)}
-              className="w-full bg-white/4 border border-[rgba(8,145,178,0.16)] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#22d3ee] transition-all appearance-none cursor-pointer"
-              style={{ background: "rgba(255,255,255,0.04)" }}>
-              <option value="" disabled>Select primary objective</option>
-              <option value="Development">Software Engineering</option>
-              <option value="Security Research">Security Research</option>
-              <option value="Education">Cybersecurity Education</option>
-              <option value="Enterprise Audit">Enterprise Auditing</option>
-            </select>
-          </div>
 
-          <button onClick={enter} disabled={connecting}
-            className="w-full py-4 rounded-[13px] text-white text-[15px] font-black tracking-wide relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ background: "linear-gradient(135deg,#0891b2,#6366f1)", boxShadow: "0 4px 24px rgba(8,145,178,0.35)", animation: "none" }}>
-            <span className="relative z-10">{connecting ? "⚡ Mounting Core..." : "⚡ Authenticate & Enter Engine"}</span>
-            <div className="absolute top-[-50%] left-[-60%] w-[40%] h-[200%] pointer-events-none"
-              style={{ background: "rgba(255,255,255,0.1)", transform: "skewX(-20deg)", animation: "btnshine 3s ease-in-out infinite" }} />
-          </button>
+            <div>
+              <label style={labelStyle}>2. Clearance Level</label>
+              <select
+                value={level}
+                onChange={e => setLevel(e.target.value)}
+                style={{ ...inputStyle, appearance:"none", cursor:"pointer" }}
+                onFocus={e => { e.target.style.borderColor="#7c3aed"; e.target.style.boxShadow="0 0 0 3px rgba(124,58,237,0.1)"; }}
+                onBlur={e => { e.target.style.borderColor="#e2e8f0"; e.target.style.boxShadow="none"; }}
+              >
+                <option value="" disabled>Select clearance level</option>
+                <option value="Novice">Level 1 — Novice</option>
+                <option value="Intermediate">Level 2 — Intermediate</option>
+                <option value="Elite">Level 3 — Elite</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={labelStyle}>3. Deployment Vector</label>
+              <select
+                value={purpose}
+                onChange={e => setPurpose(e.target.value)}
+                style={{ ...inputStyle, appearance:"none", cursor:"pointer" }}
+                onFocus={e => { e.target.style.borderColor="#0891b2"; e.target.style.boxShadow="0 0 0 3px rgba(8,145,178,0.1)"; }}
+                onBlur={e => { e.target.style.borderColor="#e2e8f0"; e.target.style.boxShadow="none"; }}
+              >
+                <option value="" disabled>Select primary objective</option>
+                <option value="Development">Software Engineering</option>
+                <option value="Education">Cybersecurity Education</option>
+                <option value="Research">Vulnerability Research</option>
+                <option value="Enterprise">Enterprise Security Auditing</option>
+              </select>
+            </div>
+
+            <button
+              onClick={continueToPlatform}
+              disabled={isConnecting}
+              style={{
+                width:"100%", padding:"14px",
+                background: isConnecting ? "#e2e8f0" : "linear-gradient(135deg,#4f46e5,#7c3aed,#0891b2)",
+                border:"none", borderRadius:14, color: isConnecting ? "#94a3b8" : "#fff",
+                fontWeight:800, fontSize:14, letterSpacing:1.5, textTransform:"uppercase",
+                cursor: isConnecting ? "default" : "pointer",
+                boxShadow: isConnecting ? "none" : "0 4px 20px rgba(79,70,229,0.35)",
+                transition:"all 0.2s", display:"flex", alignItems:"center", justifyContent:"center", gap:8
+              }}
+            >
+              {isConnecting ? (
+                <>
+                  <span style={{ width:16, height:16, border:"2px solid #94a3b8", borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite", display:"inline-block" }} />
+                  Mounting Core...
+                </>
+              ) : "Authenticate & Enter Engine"}
+            </button>
+
+            {canInstall && (
+              <button onClick={installApp} style={{
+                width:"100%", padding:"11px",
+                background:"rgba(16,185,129,0.08)", border:"1.5px solid rgba(16,185,129,0.3)",
+                borderRadius:14, color:"#059669", fontWeight:700, fontSize:13,
+                cursor:"pointer", textTransform:"uppercase", letterSpacing:1
+              }}>📲 Install App (PWA)</button>
+            )}
+          </div>
+        </div>
+
+        <div style={{
+          background:"#f8fafc", borderTop:"1px solid #f1f5f9",
+          padding:"14px 32px", textAlign:"center", fontSize:11, color:"#94a3b8"
+        }}>
+          🛡️ SecureCheck AI · Built by <span style={{ color:"#4f46e5", fontWeight:700 }}>Suleiman Alhassan</span>
         </div>
       </div>
+
+      <style>{`
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+        @keyframes spin  { to { transform: rotate(360deg); } }
+        * { box-sizing: border-box; }
+        input::placeholder, textarea::placeholder { color: #94a3b8 !important; }
+        select option { color: #0f172a; background: #fff; }
+      `}</style>
     </div>
   );
 }

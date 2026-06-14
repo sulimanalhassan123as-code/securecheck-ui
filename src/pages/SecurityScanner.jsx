@@ -1,109 +1,129 @@
 import { useState } from "react";
-import PageShell from "../components/PageShell";
-import ResultStage from "../components/ResultStage";
+import ScannerForm from "../components/ScannerForm";
+import ThreatMatrix from "../components/ThreatMatrix";
+import TechnologyCard from "../components/TechnologyCard";
 
-const API_BASE = import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  "https://securecheck-api.onrender.com/api";
 
 export default function SecurityScanner() {
   const [targetUrl, setTargetUrl] = useState("");
-  const [scanning, setScanning] = useState(false);
-  const [result, setResult] = useState(null);
-  const [logs, setLogs] = useState([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [findings, setFindings] = useState([]);
+  const [technologies, setTechnologies] = useState([]);
 
-  const addLog = (msg) => setLogs(prev => [...prev, msg]);
+  const runNetworkScan = async () => {
+    if (!targetUrl.trim()) {
+      alert("Please enter a target URL");
+      return;
+    }
 
-  const runScan = async () => {
-    if (!targetUrl.trim()) { alert("Enter a target URL"); return; }
-    setScanning(true); setResult(null); setLogs([]);
-    addLog("⚡ Connecting to SecureCheck engine...");
-    addLog("📡 Queuing security audit...");
+    setIsScanning(true);
+    setFindings([]);
+    setTechnologies([]);
+
     try {
-      const r = await fetch(`${API_BASE}/scans/start`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetUrl }),
+      const startRes = await fetch(`${API_BASE}/scans/start`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          targetUrl
+        })
       });
-      const d = await r.json();
-      if (!d.scanId) throw new Error("No scan ID returned");
-      addLog(`✅ Scan queued — ID: ${d.scanId.slice(0, 16)}...`);
-      addLog("⏳ Processing security diagnostics...");
-      const poll = setInterval(async () => {
+
+      if (!startRes.ok) {
+        throw new Error("Failed to start scan");
+      }
+
+      const startData = await startRes.json();
+
+      if (!startData.scanId) {
+        throw new Error("No scanId returned");
+      }
+
+      const scanId = startData.scanId;
+
+      const pollInterval = setInterval(async () => {
         try {
-          const cr = await fetch(`${API_BASE}/scans/${d.scanId}`);
-          const cd = await cr.json();
-          if (cd.status === "COMPLETED") {
-            clearInterval(poll);
-            addLog("🏁 Scan completed.");
-            setResult(cd); setScanning(false);
-          } else if (cd.status === "FAILED") {
-            clearInterval(poll);
-            addLog("❌ Scan failed."); setScanning(false);
-          } else { addLog("⏳ Still processing..."); }
-        } catch { clearInterval(poll); setScanning(false); }
+          const scanRes = await fetch(
+            `${API_BASE}/scans/${scanId}`
+          );
+
+          if (!scanRes.ok) {
+            throw new Error("Failed to fetch scan");
+          }
+
+          const scanData = await scanRes.json();
+
+          if (scanData.status === "COMPLETED") {
+            clearInterval(pollInterval);
+
+            setFindings(scanData.findings || []);
+
+            setTechnologies([
+              `Security Score: ${scanData.securityScore ?? 0}`,
+              `Duration: ${scanData.durationMs ?? 0} ms`,
+              scanData.scanType || "WEB_HEADERS",
+              scanData.status
+            ]);
+
+            setIsScanning(false);
+          }
+
+          if (scanData.status === "FAILED") {
+            clearInterval(pollInterval);
+            alert("Scan failed.");
+            setIsScanning(false);
+          }
+        } catch (err) {
+          console.error(err);
+          clearInterval(pollInterval);
+          setIsScanning(false);
+        }
       }, 3000);
-    } catch (e) { addLog("❌ " + e.message); setScanning(false); }
+
+    } catch (err) {
+      console.error(err);
+      alert("Failed to connect to SecureCheck API.");
+      setIsScanning(false);
+    }
   };
 
-  const score = result?.securityScore ?? 0;
-  const scoreColor = score >= 80 ? "#10b981" : score >= 50 ? "#f59e0b" : "#ef4444";
-
   return (
-    <PageShell title="Security Scanner" icon="🛡️">
-      <div className="rounded-2xl p-4 mb-4 border border-[rgba(8,145,178,0.12)] bg-white/3">
-        <div className="text-[13px] font-bold text-[#22d3ee] mb-3">Target Configuration</div>
-        <input value={targetUrl} onChange={e => setTargetUrl(e.target.value)}
-          placeholder="https://example.com" type="url"
-          onKeyDown={e => e.key === "Enter" && runScan()}
-          className="w-full bg-white/4 border border-[rgba(8,145,178,0.15)] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#22d3ee] transition-colors mb-3 placeholder-white/20" />
-        <button onClick={runScan} disabled={scanning}
-          className="px-6 py-3 rounded-xl text-white font-bold text-sm transition-all hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: "linear-gradient(135deg,#0891b2,#6366f1)", boxShadow: "0 3px 16px rgba(8,145,178,0.25)" }}>
-          {scanning ? "⏳ Scanning..." : "⚡ Start Security Scan"}
-        </button>
+    <div className="min-h-screen bg-[#050b1a] text-white p-6">
+      <div className="max-w-6xl mx-auto">
 
-        {/* Live log */}
-        {logs.length > 0 && (
-          <div className="mt-3 rounded-lg p-3 font-mono text-[11px] text-[#22d3ee] bg-black/30 border border-[rgba(8,145,178,0.1)] max-h-[100px] overflow-y-auto">
-            {logs.map((l, i) => <div key={i}>{l}</div>)}
-          </div>
-        )}
-      </div>
+        <h1 className="text-4xl font-bold mb-2">
+          Security Scanner Workspace
+        </h1>
 
-      <ResultStage scanning={scanning} scanLabel="SCANNING TARGET...">
-        {result && (
-          <>
-            {/* Score */}
-            <div className="flex items-center gap-4 p-3 rounded-xl mb-3" style={{ background: `${scoreColor}10` }}>
-              <div className="w-16 h-16 rounded-full flex items-center justify-center flex-col flex-shrink-0"
-                style={{ background: `conic-gradient(${scoreColor} ${score * 3.6}deg, rgba(255,255,255,0.05) 0)` }}>
-                <span className="text-xl font-black" style={{ color: scoreColor }}>{score}</span>
-                <span className="text-[8px] text-white/40 uppercase">Score</span>
-              </div>
-              <div>
-                <div className="font-black text-base" style={{ color: scoreColor }}>
-                  {score >= 80 ? "Good Security" : score >= 50 ? "Needs Attention" : "High Risk"}
-                </div>
-                <div className="text-[12px] text-white/40 mt-0.5">
-                  {result.findings?.length ?? 0} issue(s) · {result.scanType} · {result.durationMs}ms
-                </div>
-              </div>
+        <p className="text-gray-400 mb-8">
+          Cyber-Zero Security Analysis Engine
+        </p>
+
+        <div className="bg-[#0f172a] border border-cyan-900 rounded-2xl p-6 mb-6">
+          <ScannerForm
+            targetUrl={targetUrl}
+            setTargetUrl={setTargetUrl}
+            runNetworkScan={runNetworkScan}
+            isScanning={isScanning}
+          />
+
+          {isScanning && (
+            <div className="mt-4 text-cyan-400 animate-pulse">
+              Scanning target...
             </div>
-            {/* Findings */}
-            {(result.findings || []).map((f, i) => (
-              <div key={i} className={`rounded-xl p-3 mb-2 finding-${f.severity?.toLowerCase()}`}>
-                <div className="flex justify-between items-start gap-2 mb-1">
-                  <span className="font-bold text-[13px]">{f.title}</span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md badge-${f.severity?.toLowerCase()}`}>{f.severity}</span>
-                </div>
-                <div className="text-[12px] text-white/50 mb-1.5">{f.description}</div>
-                {f.recommendation && (
-                  <div className="text-[11px] text-green-300 bg-green-400/7 rounded-lg px-2 py-1.5">💡 {f.recommendation}</div>
-                )}
-              </div>
-            ))}
-            {!result.findings?.length && <div className="text-center py-4 text-white/30 text-sm">✅ No issues found — great security posture!</div>}
-          </>
-        )}
-      </ResultStage>
-    </PageShell>
+          )}
+        </div>
+
+        <ThreatMatrix findings={findings} />
+
+        <TechnologyCard technologies={technologies} />
+
+      </div>
+    </div>
   );
 }
