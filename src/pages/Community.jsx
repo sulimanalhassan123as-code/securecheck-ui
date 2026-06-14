@@ -52,7 +52,7 @@ export default function Community() {
         padding:"0 14px", height:60, background:"#0d2137",
         borderBottom:"1px solid rgba(8,145,178,0.2)"
       }}>
-        <button onClick={() => navigate("/")} style={{
+        <button onClick={() => navigate("/dashboard")} style={{
           background:"none", border:"none", color:"#22d3ee",
           fontSize:22, cursor:"pointer", padding:"4px 6px 4px 0"
         }}>←</button>

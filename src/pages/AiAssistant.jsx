@@ -103,7 +103,7 @@ export default function AiAssistant() {
             <h1 style={{ fontSize:22, fontWeight:800, margin:0 }}>🤖 Cyber-Zero AI Assistant</h1>
             <p style={{ color:"#94a3b8", marginTop:4, fontSize:13 }}>Security • Development • Technology Intelligence</p>
           </div>
-          <button onClick={() => navigate("/")} style={{
+          <button onClick={() => navigate("/dashboard")} style={{
             background:"rgba(8,145,178,0.12)", border:"1px solid rgba(8,145,178,0.25)",
             borderRadius:10, padding:"7px 16px", color:"#22d3ee",
             fontSize:13, fontWeight:700, cursor:"pointer"

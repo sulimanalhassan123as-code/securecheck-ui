@@ -37,7 +37,7 @@ export default function Welcome() {
       localStorage.setItem("cyberzero_level", level);
       localStorage.setItem("cyberzero_purpose", purpose);
       localStorage.setItem("cyberzero_onboarded", "true");
-      navigate("/");
+      navigate("/dashboard");
     }, 700);
   };
 
