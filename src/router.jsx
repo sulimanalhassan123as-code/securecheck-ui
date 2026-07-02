@@ -11,6 +11,7 @@ import PaymentLab from "./pages/PaymentLab";
 import SystemManagement from "./pages/SystemManagement";
 import AiAssistant from "./pages/AiAssistant";
 import Community from "./pages/Community";
+import AdminOps from "./pages/AdminOps";
 
 export default function Router() {
   return (
@@ -27,6 +28,7 @@ export default function Router() {
         <Route path="/system" element={<SystemManagement />} />
         <Route path="/ai" element={<AiAssistant />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/admin-ops" element={<AdminOps />} />
       </Routes>
     </BrowserRouter>
   );
