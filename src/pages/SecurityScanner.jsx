@@ -3,6 +3,7 @@ import ScannerForm from "../components/ScannerForm";
 import ThreatMatrix from "../components/ThreatMatrix";
 import TechnologyCard from "../components/TechnologyCard";
 import DeepScanReport from "../components/DeepScanReport";
+import ScanHistory from "../components/ScanHistory";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -16,6 +17,8 @@ export default function SecurityScanner() {
   const [technologies, setTechnologies] = useState([]);
   const [deepReport, setDeepReport] = useState(null);
   const [deepError, setDeepError] = useState("");
+  const [historyKey, setHistoryKey] = useState(0);
+  const [historyError, setHistoryError] = useState("");
 
   const runNetworkScan = async () => {
     if (!targetUrl.trim()) {
@@ -77,6 +80,7 @@ export default function SecurityScanner() {
             ]);
 
             setIsScanning(false);
+            setHistoryKey((k) => k + 1);
           }
 
           if (scanData.status === "FAILED") {
@@ -124,11 +128,51 @@ export default function SecurityScanner() {
 
       setDeepReport(data);
       setFindings(data.findings || []);
+      setHistoryKey((k) => k + 1);
     } catch (err) {
       console.error(err);
       setDeepError(err.message || "Deep analysis failed. The backend may be waking up — try again in a few seconds.");
     } finally {
       setIsDeepScanning(false);
+    }
+  };
+
+  // Re-open a past scan from history without re-running it
+  const openPastScan = async (scanId) => {
+    setHistoryError("");
+    try {
+      const res = await fetch(`${API_BASE}/analyzer/scan/${scanId}`);
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Could not load that scan");
+
+      const scan = data.scan;
+      setTargetUrl(scan.targetUrl || "");
+      setFindings(scan.findings || []);
+
+      if (scan.scanType === "DEEP_WEBSITE_AUDIT") {
+        setDeepReport({
+          securityScore: scan.securityScore,
+          pageTitle: null,
+          crawledPageCount: null,
+          siteSummary: `Reopened from history — scanned ${new Date(scan.createdAt).toLocaleString()}.`,
+          technologies: [],
+          missingSecurityHeaders: [],
+          exposedSecrets: [],
+          findings: scan.findings || [],
+        });
+        setTechnologies([]);
+      } else {
+        setDeepReport(null);
+        setTechnologies([
+          `Security Score: ${scan.securityScore ?? 0}`,
+          `Duration: ${scan.durationMs ?? 0} ms`,
+          scan.scanType || "WEB_HEADERS",
+          scan.status
+        ]);
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      setHistoryError(err.message);
     }
   };
 
@@ -178,6 +222,12 @@ export default function SecurityScanner() {
         <ThreatMatrix findings={findings} />
 
         <TechnologyCard technologies={technologies} />
+
+        {historyError && (
+          <div className="mt-4 text-red-400 text-sm">⚠️ {historyError}</div>
+        )}
+
+        <ScanHistory refreshKey={historyKey} onSelectScan={openPastScan} />
 
       </div>
     </div>
