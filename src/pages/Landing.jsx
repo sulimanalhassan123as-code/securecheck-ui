@@ -5,7 +5,7 @@ const features = [
   { icon: "🔬", title: "Tech Intelligence", desc: "Detect what framework, CMS, CDN or database any website is running — without touching their code." },
   { icon: "🌐", title: "Domain Intelligence", desc: "Full WHOIS, DNS record lookup, SSL certificate check and domain risk analysis in one click." },
   { icon: "🔌", title: "API Intelligence", desc: "Inspect API endpoints, detect exposed routes and map security rules of any web service." },
-  { icon: "🤖", title: "AI Assistant", desc: "Ask Cyber-Zero anything about security. Paste code, paste a URL — get expert analysis powered by Groq Llama 3.3." },
+  { icon: "🤖", title: "AI Assistant", desc: "Ask Cyber-Zero anything about security. Paste code, paste a URL — get expert analysis powered by Never Hide AI." },
   { icon: "💳", title: "Payment Lab", desc: "Test payment gateway configurations and compliance settings in a safe sandbox environment." },
 ];
 
@@ -107,7 +107,7 @@ export default function Landing() {
             { value:"100/100", label:"Max Security Score" },
             { value:"8",       label:"Intelligence Modules" },
             { value:"Free",    label:"No Credit Card" },
-            { value:"AI",      label:"Powered by Groq" },
+            { value:"AI",      label:"Powered by Never Hide" },
           ].map((s,i) => (
             <div key={i} style={{ textAlign:"center" }}>
               <div style={{ fontSize:26, fontWeight:900, color:"#4f46e5" }}>{s.value}</div>
@@ -210,3 +210,4 @@ export default function Landing() {
     </div>
   );
 }
+
