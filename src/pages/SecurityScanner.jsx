@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ScannerForm from "../components/ScannerForm";
 import ThreatMatrix from "../components/ThreatMatrix";
 import TechnologyCard from "../components/TechnologyCard";
 import DeepScanReport from "../components/DeepScanReport";
 import ScanHistory from "../components/ScanHistory";
+import PaymentModal from "../components/PaymentModal";
+import { getDeviceId } from "../utils/device";
+import { Gate } from "../utils/gateApi";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -20,9 +23,32 @@ export default function SecurityScanner() {
   const [historyKey, setHistoryKey] = useState(0);
   const [historyError, setHistoryError] = useState("");
 
+  const [deviceId] = useState(() => getDeviceId());
+  const [quota, setQuota] = useState({ usedToday: 0, freeLimit: 1, canScan: true });
+  const [unlocked, setUnlocked] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+
+  const refreshGateState = async () => {
+    const [q, u] = await Promise.all([
+      Gate.checkQuota(deviceId),
+      Gate.checkUnlock(deviceId),
+    ]);
+    if (!q.error) setQuota(q);
+    if (!u.error) setUnlocked(!!u.unlocked);
+  };
+
+  useEffect(() => {
+    refreshGateState();
+  }, []);
+
   const runNetworkScan = async () => {
     if (!targetUrl.trim()) {
       alert("Please enter a target URL");
+      return;
+    }
+
+    if (!quota.canScan) {
+      alert(`You've used your free scan for today (${quota.usedToday}/${quota.freeLimit}). Come back tomorrow, or unlock Deep Analysis for unlimited-feeling access via MoMo.`);
       return;
     }
 
@@ -81,6 +107,7 @@ export default function SecurityScanner() {
 
             setIsScanning(false);
             setHistoryKey((k) => k + 1);
+            Gate.incrementQuota(deviceId).then(refreshGateState);
           }
 
           if (scanData.status === "FAILED") {
@@ -105,6 +132,11 @@ export default function SecurityScanner() {
   const runDeepScan = async () => {
     if (!targetUrl.trim()) {
       alert("Please enter a target URL");
+      return;
+    }
+
+    if (!unlocked) {
+      setShowPayment(true);
       return;
     }
 
@@ -184,9 +216,18 @@ export default function SecurityScanner() {
           Security Scanner Workspace
         </h1>
 
-        <p className="text-gray-400 mb-8">
+        <p className="text-gray-400 mb-1">
           Cyber-Zero Security Analysis Engine
         </p>
+
+        <div className="flex flex-wrap gap-3 mb-6 text-xs font-mono">
+          <span className={`px-3 py-1.5 rounded-lg border ${quota.canScan ? "border-emerald-800 bg-emerald-950/40 text-emerald-400" : "border-amber-800 bg-amber-950/40 text-amber-400"}`}>
+            ⚡ Quick Scan: {quota.usedToday}/{quota.freeLimit} used today
+          </span>
+          <span className={`px-3 py-1.5 rounded-lg border ${unlocked ? "border-emerald-800 bg-emerald-950/40 text-emerald-400" : "border-purple-800 bg-purple-950/40 text-purple-300"}`}>
+            {unlocked ? "🔓 Deep Analysis unlocked" : "🔒 Deep Analysis — pay to unlock"}
+          </span>
+        </div>
 
         <div className="bg-[#0f172a] border border-cyan-900 rounded-2xl p-6 mb-6">
           <ScannerForm
@@ -228,6 +269,17 @@ export default function SecurityScanner() {
         )}
 
         <ScanHistory refreshKey={historyKey} onSelectScan={openPastScan} />
+
+        {showPayment && (
+          <PaymentModal
+            deviceId={deviceId}
+            onClose={() => setShowPayment(false)}
+            onUnlocked={() => {
+              setUnlocked(true);
+              setShowPayment(false);
+            }}
+          />
+        )}
 
       </div>
     </div>
