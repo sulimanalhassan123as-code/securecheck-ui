@@ -14,10 +14,10 @@ export default function TechnologyIntelligence() {
       alert("Enter a website URL");
       return;
     }
-    
+
     setLoading(true);
     setReport(null);
-    
+
     try {
       const res = await fetch(`${API_BASE}/technology`, {
         method: "POST",
@@ -28,20 +28,20 @@ export default function TechnologyIntelligence() {
           url
         })
       });
-      
+
       const data = await res.json();
-      
+
       if (data.success) {
         setTechnologies(data.technologies || []);
         setReport(data);
       } else {
-        alert("Technology analysis returned unsuccessful execution parameters.");
+        alert(data.error || "Technology analysis returned unsuccessful execution parameters.");
       }
     } catch (err) {
       console.error(err);
       alert("Technology analysis failed");
     }
-    
+
     setLoading(false);
   };
 
@@ -50,6 +50,9 @@ export default function TechnologyIntelligence() {
     await navigator.clipboard.writeText(JSON.stringify(report, null, 2));
     alert("Report copied");
   };
+
+  const insights = report?.insights;
+  const categorized = insights?.categorizedStack;
 
   return (
     <div className="min-h-screen bg-[#050b1a] text-white p-6 font-sans selection:bg-cyan-500 selection:text-black">
@@ -105,7 +108,7 @@ export default function TechnologyIntelligence() {
             
             <div className="flex justify-between items-center mb-6 border-b border-gray-800/60 pb-4">
               <div>
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block font-mono mb-0.5">Manifest Manifested</span>
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block font-mono mb-0.5">Live Recon Result</span>
                 <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
                   <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
                   Detected Core Infrastructure Stack
@@ -151,21 +154,66 @@ export default function TechnologyIntelligence() {
                 )}
               </div>
             )}
+
+            {report && (
+              <div className="mt-6 pt-5 border-t border-gray-800/60 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-mono">Security Header Coverage</span>
+                </div>
+                {report.missingSecurityHeaders?.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {report.missingSecurityHeaders.map((h, i) => (
+                      <span key={i} className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300">
+                        Missing: {h}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
+                    All tracked security headers present
+                  </span>
+                )}
+                <div className="text-[11px] font-mono text-gray-500">
+                  {report.assetsScanned?.length || 0} public asset file(s) fetched and analyzed · Security Score: {report.score}/100
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Lateral Diagnostics Insight Pane */}
+          {/* Lateral Diagnostics Insight Pane — now real AI-generated analysis, not filler */}
           <div className="bg-[#0f172a]/50 backdrop-blur-sm border border-gray-900 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-widest text-purple-400 font-mono mb-4">Inspection Insights</h3>
+              <h3 className="text-xs font-bold uppercase tracking-widest text-purple-400 font-mono mb-4">
+                Inspection Insights {insights?.confidence && (
+                  <span className="text-gray-600 normal-case tracking-normal">· {insights.confidence} confidence</span>
+                )}
+              </h3>
               <div className="space-y-4 text-xs font-mono text-gray-400">
-                <div className="p-3 rounded-xl bg-[#050b1a] border border-gray-800/40">
-                  <span className="text-white block font-bold mb-1">State Synchronicity</span>
-                  Maintains full matching parameters across downstream configurations.
-                </div>
-                <div className="p-3 rounded-xl bg-[#050b1a] border border-gray-800/40">
-                  <span className="text-white block font-bold mb-1">Layer Vectoring</span>
-                  Scans DOM elements, header patterns, global script allocations, and meta parameters.
-                </div>
+                {insights ? (
+                  <>
+                    <div className="p-3 rounded-xl bg-[#050b1a] border border-gray-800/40">
+                      <span className="text-white block font-bold mb-1">Architecture Summary</span>
+                      {insights.architectureSummary}
+                    </div>
+                    <div className="p-3 rounded-xl bg-[#050b1a] border border-gray-800/40">
+                      <span className="text-white block font-bold mb-1">Security Posture</span>
+                      {insights.securityPostureNote || "No notable findings."}
+                    </div>
+                    {categorized && (
+                      <div className="p-3 rounded-xl bg-[#050b1a] border border-gray-800/40 space-y-1.5">
+                        <span className="text-white block font-bold mb-1">Stack Breakdown</span>
+                        {categorized.frontend?.length > 0 && <div>Frontend: {categorized.frontend.join(", ")}</div>}
+                        {categorized.hostingOrCdn?.length > 0 && <div>Hosting/CDN: {categorized.hostingOrCdn.join(", ")}</div>}
+                        {categorized.analyticsOrThirdParty?.length > 0 && <div>Analytics/3rd-party: {categorized.analyticsOrThirdParty.join(", ")}</div>}
+                        {categorized.other?.length > 0 && <div>Other: {categorized.other.join(", ")}</div>}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="p-3 rounded-xl bg-[#050b1a] border border-gray-800/40 text-gray-600">
+                    Run an analysis to generate a live intelligence write-up for this target.
+                  </div>
+                )}
               </div>
             </div>
             
