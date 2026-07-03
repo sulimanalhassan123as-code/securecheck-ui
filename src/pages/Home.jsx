@@ -20,7 +20,6 @@ export default function Home() {
     { name: "Technology Intelligence", path: "/technology", icon: "🔬", desc: "Detect framework footprints and system stacks.",       bg: "#065f46", accent: "#34d399" },
     { name: "Domain Intelligence",     path: "/domain",     icon: "🌐", desc: "WHOIS, DNS and domain risk analysis.",                 bg: "#1d4ed8", accent: "#93c5fd" },
     { name: "API Intelligence",        path: "/api",        icon: "🔌", desc: "Inspect endpoints, protocols and security rules.",     bg: "#4338ca", accent: "#a5b4fc" },
-    { name: "Payment Lab",             path: "/payment",    icon: "💳", desc: "Test payment configs — sandbox only.",                 bg: "#065f46", accent: "#6ee7b7" },
     { name: "System Management",       path: "/system",     icon: "⚙️", desc: "Manage runtime, resources and cluster state.",        bg: "#374151", accent: "#d1d5db" },
     { name: "AI Assistant",            path: "/ai",         icon: "🤖", desc: "Never Hide AI — neural security intelligence.",       bg: "#6d28d9", accent: "#c4b5fd" },
     { name: "Community",               path: "/community",  icon: "💬", desc: "Post questions, get answers from the network.",        bg: "#0369a1", accent: "#7dd3fc" },
@@ -224,4 +223,5 @@ export default function Home() {
     </div>
   );
 }
+
 
