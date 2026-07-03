@@ -7,6 +7,7 @@ import ScanHistory from "../components/ScanHistory";
 import PaymentModal from "../components/PaymentModal";
 import { getDeviceId } from "../utils/device";
 import { Gate } from "../utils/gateApi";
+import { getCurrentUser } from "../utils/auth";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -59,13 +60,17 @@ export default function SecurityScanner() {
     setDeepError("");
 
     try {
+      const currentUser = getCurrentUser();
       const startRes = await fetch(`${API_BASE}/scans/start`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          targetUrl
+          targetUrl,
+          userId: currentUser?.id || null,
+          userEmail: currentUser?.email || null,
+          userName: currentUser?.name || null,
         })
       });
 
@@ -146,10 +151,16 @@ export default function SecurityScanner() {
     setFindings([]);
 
     try {
+      const currentUser = getCurrentUser();
       const res = await fetch(`${API_BASE}/analyzer/deep-scan`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targetUrl })
+        body: JSON.stringify({
+          targetUrl,
+          userId: currentUser?.id || null,
+          userEmail: currentUser?.email || null,
+          userName: currentUser?.name || null,
+        })
       });
 
       const data = await res.json();
@@ -285,3 +296,4 @@ export default function SecurityScanner() {
     </div>
   );
 }
+
