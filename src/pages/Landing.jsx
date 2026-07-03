@@ -6,7 +6,6 @@ const features = [
   { icon: "🌐", title: "Domain Intelligence", desc: "Full WHOIS, DNS record lookup, SSL certificate check and domain risk analysis in one click." },
   { icon: "🔌", title: "API Intelligence", desc: "Inspect API endpoints, detect exposed routes and map security rules of any web service." },
   { icon: "🤖", title: "AI Assistant", desc: "Ask Cyber-Zero anything about security. Paste code, paste a URL — get expert analysis powered by Never Hide AI." },
-  { icon: "💳", title: "Payment Lab", desc: "Test payment gateway configurations and compliance settings in a safe sandbox environment." },
 ];
 
 const steps = [
@@ -210,4 +209,5 @@ export default function Landing() {
     </div>
   );
 }
+
 
