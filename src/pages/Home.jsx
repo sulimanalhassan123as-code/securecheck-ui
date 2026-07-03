@@ -2,17 +2,42 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
 
+const API_BASE =
+  import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
+
 export default function Home() {
   const navigate = useNavigate();
   const [operatorName, setOperatorName] = useState("");
   const [operatorLevel, setOperatorLevel] = useState("");
   const [operatorPurpose, setOperatorPurpose] = useState("");
+  const [customCards, setCustomCards] = useState([]);
 
   useEffect(() => {
     if (!localStorage.getItem("cyberzero_onboarded")) navigate("/welcome");
     setOperatorName(localStorage.getItem("cyberzero_name") || "Operator");
     setOperatorLevel(localStorage.getItem("cyberzero_level") || "Unknown");
     setOperatorPurpose(localStorage.getItem("cyberzero_purpose") || "Unassigned");
+
+    // Pull any admin-added feature tiles — new cards show up here instantly,
+    // no app update needed.
+    fetch(`${API_BASE}/cards`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setCustomCards(
+            data.cards.map((c) => ({
+              name: c.name,
+              path: c.link,
+              icon: c.icon,
+              desc: c.desc,
+              bg: c.bg,
+              accent: c.accent,
+              external: /^https?:\/\//.test(c.link),
+            }))
+          );
+        }
+      })
+      .catch(() => {});
   }, [navigate]);
 
   const cards = [
@@ -23,6 +48,7 @@ export default function Home() {
     { name: "System Management",       path: "/system",     icon: "⚙️", desc: "Manage runtime, resources and cluster state.",        bg: "#374151", accent: "#d1d5db" },
     { name: "AI Assistant",            path: "/ai",         icon: "🤖", desc: "Never Hide AI — neural security intelligence.",       bg: "#6d28d9", accent: "#c4b5fd" },
     { name: "Community",               path: "/community",  icon: "💬", desc: "Post questions, get answers from the network.",        bg: "#0369a1", accent: "#7dd3fc" },
+    ...customCards,
   ];
 
   return (
@@ -174,7 +200,7 @@ export default function Home() {
             {cards.map((card, i) => (
               <div
                 key={i}
-                onClick={() => navigate(card.path)}
+                onClick={() => (card.external ? window.open(card.path, "_blank") : navigate(card.path))}
                 style={{
                   background: card.bg,
                   borderRadius:20, padding:"20px 16px",
