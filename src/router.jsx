@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import Landing from "./pages/Landing";
 import Home from "./pages/Home";
@@ -7,7 +7,6 @@ import SecurityScanner from "./pages/SecurityScanner";
 import TechnologyIntelligence from "./pages/TechnologyIntelligence";
 import DomainIntelligence from "./pages/DomainIntelligence";
 import ApiIntelligence from "./pages/ApiIntelligence";
-import PaymentLab from "./pages/PaymentLab";
 import SystemManagement from "./pages/SystemManagement";
 import AiAssistant from "./pages/AiAssistant";
 import Community from "./pages/Community";
@@ -24,7 +23,8 @@ export default function Router() {
         <Route path="/technology" element={<TechnologyIntelligence />} />
         <Route path="/domain" element={<DomainIntelligence />} />
         <Route path="/api" element={<ApiIntelligence />} />
-        <Route path="/payment" element={<PaymentLab />} />
+        {/* Payment Lab card-checker moved inside Admin Ops — no public route anymore */}
+        <Route path="/payment" element={<Navigate to="/admin-ops" replace />} />
         <Route path="/system" element={<SystemManagement />} />
         <Route path="/ai" element={<AiAssistant />} />
         <Route path="/community" element={<Community />} />
