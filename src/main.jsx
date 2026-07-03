@@ -1,7 +1,10 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import Router from './router.jsx'
+import { initAuthSync } from './utils/auth'
 import './index.css'
+
+initAuthSync();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
