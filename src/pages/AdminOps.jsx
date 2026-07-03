@@ -5,7 +5,7 @@ import { Gate } from "../utils/gateApi";
 const API_BASE =
   import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
-const TABS = ["Payments", "Activity", "Users", "Payment Lab", "Danger Zone"];
+const TABS = ["Payments", "Activity", "Users", "Manage Cards", "Payment Lab", "Danger Zone"];
 
 export default function AdminOps() {
   const [pass, setPass] = useState("");
@@ -22,6 +22,13 @@ export default function AdminOps() {
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [banBusyEmail, setBanBusyEmail] = useState(null);
+
+  const [cards, setCards] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(false);
+  const [cardForm, setCardForm] = useState({
+    name: "", desc: "", icon: "✨", link: "", bg: "#4338ca", accent: "#a5b4fc",
+  });
+  const [cardSaving, setCardSaving] = useState(false);
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardReport, setCardReport] = useState(null);
@@ -135,6 +142,60 @@ export default function AdminOps() {
     }
     setBanBusyEmail(null);
     loadUsers();
+  };
+
+  const loadCards = async () => {
+    setCardsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/cards/admin`, {
+        headers: { "x-admin-key": pass },
+      });
+      const data = await res.json();
+      if (data.success) setCards(data.cards || []);
+      else alert(data.error || "Failed to load cards");
+    } catch (err) {
+      alert("Failed to reach the scan API");
+    }
+    setCardsLoading(false);
+  };
+
+  const addCard = async () => {
+    if (!cardForm.name.trim() || !cardForm.link.trim()) {
+      return alert("Name and Link are required");
+    }
+    setCardSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/cards`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": pass },
+        body: JSON.stringify(cardForm),
+      });
+      const data = await res.json();
+      if (!data.success) alert(data.error || "Failed to add card");
+      else setCardForm({ name: "", desc: "", icon: "✨", link: "", bg: "#4338ca", accent: "#a5b4fc" });
+    } catch (err) {
+      alert("Failed to reach the scan API");
+    }
+    setCardSaving(false);
+    loadCards();
+  };
+
+  const toggleCard = async (id, isActive) => {
+    await fetch(`${API_BASE}/cards/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", "x-admin-key": pass },
+      body: JSON.stringify({ isActive: !isActive }),
+    });
+    loadCards();
+  };
+
+  const deleteCard = async (id, name) => {
+    if (!confirm(`Delete the "${name}" card? This can't be undone.`)) return;
+    await fetch(`${API_BASE}/cards/${id}`, {
+      method: "DELETE",
+      headers: { "x-admin-key": pass },
+    });
+    loadCards();
   };
 
   const analyzeCard = async () => {
@@ -368,6 +429,121 @@ export default function AdminOps() {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {tab === "Manage Cards" && (
+          <div className="space-y-6">
+            <div className="bg-[#0f172a] border border-gray-800 rounded-xl p-4 space-y-3 max-w-lg">
+              <div className="text-sm font-semibold text-white mb-1">Add a new feature card</div>
+              <p className="text-xs text-gray-500 mb-2">
+                Fill this in and it shows up on the homepage instantly — no app update needed.
+              </p>
+              <input
+                type="text"
+                placeholder="Name (e.g. Password Vault)"
+                value={cardForm.name}
+                onChange={(e) => setCardForm({ ...cardForm, name: e.target.value })}
+                className="w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              />
+              <input
+                type="text"
+                placeholder="Short description"
+                value={cardForm.desc}
+                onChange={(e) => setCardForm({ ...cardForm, desc: e.target.value })}
+                className="w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              />
+              <input
+                type="text"
+                placeholder="Link — internal path like /vault or full https:// URL"
+                value={cardForm.link}
+                onChange={(e) => setCardForm({ ...cardForm, link: e.target.value })}
+                className="w-full bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+              />
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  placeholder="Icon (emoji)"
+                  value={cardForm.icon}
+                  onChange={(e) => setCardForm({ ...cardForm, icon: e.target.value })}
+                  className="w-20 bg-[#0a0f1d] border border-gray-700 rounded-lg px-3 py-2 text-white text-sm text-center"
+                />
+                <input
+                  type="color"
+                  value={cardForm.bg}
+                  onChange={(e) => setCardForm({ ...cardForm, bg: e.target.value })}
+                  className="w-14 h-10 bg-[#0a0f1d] border border-gray-700 rounded-lg"
+                  title="Card background color"
+                />
+                <input
+                  type="color"
+                  value={cardForm.accent}
+                  onChange={(e) => setCardForm({ ...cardForm, accent: e.target.value })}
+                  className="w-14 h-10 bg-[#0a0f1d] border border-gray-700 rounded-lg"
+                  title="Accent color"
+                />
+              </div>
+              <button
+                onClick={addCard}
+                disabled={cardSaving}
+                className="w-full bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-lg py-3 font-medium text-sm"
+              >
+                {cardSaving ? "Adding..." : "➕ Add Card to Homepage"}
+              </button>
+            </div>
+
+            <div>
+              <button
+                onClick={loadCards}
+                disabled={cardsLoading}
+                className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-lg py-3 px-6 font-medium text-sm mb-4"
+              >
+                {cardsLoading ? "Loading..." : "🔄 Load Existing Cards"}
+              </button>
+
+              <div className="space-y-3">
+                {cards.length === 0 && (
+                  <p className="text-gray-500 text-sm">No cards loaded yet.</p>
+                )}
+                {cards.map((c) => (
+                  <div
+                    key={c.id}
+                    className="bg-[#0f172a] border border-gray-800 rounded-xl p-4 flex items-center justify-between gap-3"
+                    style={{ borderLeft: `4px solid ${c.bg}` }}
+                  >
+                    <div className="flex items-center gap-3 text-sm">
+                      <span className="text-2xl">{c.icon}</span>
+                      <div>
+                        <div className="font-medium text-white flex items-center gap-2">
+                          {c.name}
+                          {!c.isActive && (
+                            <span className="text-[10px] bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-bold">
+                              HIDDEN
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-gray-500 text-xs">{c.desc}</div>
+                        <div className="text-gray-600 text-[11px] font-mono">{c.link}</div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                      <button
+                        onClick={() => toggleCard(c.id, c.isActive)}
+                        className="bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-2 rounded-lg font-bold"
+                      >
+                        {c.isActive ? "Hide" : "Show"}
+                      </button>
+                      <button
+                        onClick={() => deleteCard(c.id, c.name)}
+                        className="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-2 rounded-lg font-bold"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
