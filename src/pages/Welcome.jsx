@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { signInWithGoogle, getCurrentUser } from "../utils/auth";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
@@ -11,9 +12,18 @@ export default function Welcome() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [canInstall, setCanInstall] = useState(false);
+  const [googleUser, setGoogleUser] = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE}/system`).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const u = getCurrentUser();
+    if (u) {
+      setGoogleUser(u);
+      setName((prev) => prev || u.name);
+    }
   }, []);
 
   useEffect(() => {
@@ -29,6 +39,10 @@ export default function Welcome() {
     if (choice.outcome === "accepted") setCanInstall(false);
   };
 
+  const continueWithGoogle = () => {
+    signInWithGoogle("/welcome");
+  };
+
   const continueToPlatform = () => {
     if (!name || !level || !purpose) { alert("⚠️ Please fill all fields to continue."); return; }
     setIsConnecting(true);
@@ -37,6 +51,9 @@ export default function Welcome() {
       localStorage.setItem("cyberzero_level", level);
       localStorage.setItem("cyberzero_purpose", purpose);
       localStorage.setItem("cyberzero_onboarded", "true");
+      if (googleUser) {
+        localStorage.setItem("cyberzero_google_email", googleUser.email || "");
+      }
       navigate("/dashboard");
     }, 700);
   };
@@ -101,6 +118,39 @@ export default function Welcome() {
 
           {/* Fields */}
           <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
+            {googleUser ? (
+              <div style={{
+                display:"flex", alignItems:"center", gap:10,
+                background:"rgba(16,185,129,0.08)", border:"1.5px solid rgba(16,185,129,0.25)",
+                borderRadius:14, padding:"10px 14px"
+              }}>
+                {googleUser.avatarUrl && (
+                  <img src={googleUser.avatarUrl} alt="" style={{ width:32, height:32, borderRadius:"50%" }} />
+                )}
+                <div style={{ fontSize:12, color:"#065f46" }}>
+                  Signed in as <strong>{googleUser.name}</strong>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={continueWithGoogle}
+                style={{
+                  width:"100%", padding:"12px", display:"flex", alignItems:"center",
+                  justifyContent:"center", gap:10, background:"#fff",
+                  border:"1.5px solid #e2e8f0", borderRadius:14, cursor:"pointer",
+                  fontWeight:700, fontSize:13, color:"#0f172a"
+                }}
+              >
+                <svg width="18" height="18" viewBox="0 0 48 48">
+                  <path fill="#FFC107" d="M43.6 20.5H42V20.4H24v7.2h11.3c-1.6 4.6-6 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.1-5.1C33.6 6.1 29.1 4.4 24 4.4 12.9 4.4 4 13.3 4 24.4s8.9 20 20 20c11.5 0 19.1-8.1 19.1-19.5 0-1.4-.1-2.5-.5-4.4z"/>
+                  <path fill="#FF3D00" d="M6.3 14.6l6.6 4.8C14.6 15.7 18.9 12.4 24 12.4c3.1 0 5.8 1.1 8 3l5.1-5.1C33.6 6.1 29.1 4.4 24 4.4c-7.5 0-14 4.3-17.7 10.2z"/>
+                  <path fill="#4CAF50" d="M24 44.4c5 0 9.5-1.9 12.9-5.1l-6-5c-2 1.4-4.5 2.1-7 2.1-5.2 0-9.6-3.4-11.2-8H6.5v5.2C10.2 40 16.6 44.4 24 44.4z"/>
+                  <path fill="#1976D2" d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.2-2.2 4.1-4 5.4l6 5c-.4.4 6.7-4.9 6.7-14.9 0-1.4-.1-2.5-.4-3.6z"/>
+                </svg>
+                Sign in with Google
+              </button>
+            )}
+
             <div>
               <label style={labelStyle}>1. Operator Alias</label>
               <input
@@ -196,3 +246,4 @@ export default function Welcome() {
     </div>
   );
 }
+
