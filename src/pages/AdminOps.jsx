@@ -5,7 +5,7 @@ import { Gate } from "../utils/gateApi";
 const API_BASE =
   import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
-const TABS = ["Payments", "Activity", "Payment Lab", "Danger Zone"];
+const TABS = ["Payments", "Activity", "Users", "Payment Lab", "Danger Zone"];
 
 export default function AdminOps() {
   const [pass, setPass] = useState("");
@@ -18,6 +18,10 @@ export default function AdminOps() {
 
   const [activity, setActivity] = useState([]);
   const [activityLoading, setActivityLoading] = useState(false);
+
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [banBusyEmail, setBanBusyEmail] = useState(null);
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardReport, setCardReport] = useState(null);
@@ -79,6 +83,58 @@ export default function AdminOps() {
       alert("Failed to reach the scan API");
     }
     setActivityLoading(false);
+  };
+
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/analyzer/users`, {
+        headers: { "x-admin-key": pass },
+      });
+      const data = await res.json();
+      if (data.success) setUsers(data.users || []);
+      else alert(data.error || "Failed to load users");
+    } catch (err) {
+      alert("Failed to reach the scan API");
+    }
+    setUsersLoading(false);
+  };
+
+  const banUser = async (email) => {
+    const reason = prompt(`Reason for banning ${email}? (visible to you only, optional)`);
+    if (reason === null) return; // cancelled
+    setBanBusyEmail(email);
+    try {
+      const res = await fetch(`${API_BASE}/analyzer/users/ban`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": pass },
+        body: JSON.stringify({ email, reason }),
+      });
+      const data = await res.json();
+      if (!data.success) alert(data.error || "Failed to ban user");
+    } catch (err) {
+      alert("Failed to reach the scan API");
+    }
+    setBanBusyEmail(null);
+    loadUsers();
+  };
+
+  const unbanUser = async (email) => {
+    if (!confirm(`Restore scan access for ${email}?`)) return;
+    setBanBusyEmail(email);
+    try {
+      const res = await fetch(`${API_BASE}/analyzer/users/unban`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": pass },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!data.success) alert(data.error || "Failed to unban user");
+    } catch (err) {
+      alert("Failed to reach the scan API");
+    }
+    setBanBusyEmail(null);
+    loadUsers();
   };
 
   const analyzeCard = async () => {
@@ -243,6 +299,75 @@ export default function AdminOps() {
                   )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {tab === "Users" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <button
+                onClick={loadUsers}
+                disabled={usersLoading}
+                className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg py-3 px-6 font-medium text-sm"
+              >
+                {usersLoading ? "Loading..." : "🔄 Load Users"}
+              </button>
+              <p className="text-xs text-gray-500 max-w-xs">
+                Banning a user blocks them from running quick scans or Deep Scans immediately.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {users.length === 0 && (
+                <p className="text-gray-500 text-sm">No signed-in users loaded yet.</p>
+              )}
+              {users.map((u) => (
+                <div
+                  key={u.userEmail}
+                  className={`bg-[#0f172a] border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                    u.isBanned ? "border-red-800" : "border-gray-800"
+                  }`}
+                >
+                  <div className="text-sm">
+                    <div className="font-medium text-white flex items-center gap-2">
+                      {u.userName || u.userEmail}
+                      {u.isBanned && (
+                        <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-bold">
+                          BANNED
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-gray-500 text-xs">{u.userEmail}</div>
+                    <div className="text-gray-600 text-[11px]">
+                      {u.scanCount} scan{u.scanCount === 1 ? "" : "s"} · last seen{" "}
+                      {new Date(u.lastSeen).toLocaleDateString()}
+                    </div>
+                    {u.isBanned && u.banReason && (
+                      <div className="text-red-400 text-[11px] mt-1">Reason: {u.banReason}</div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {u.isBanned ? (
+                      <button
+                        onClick={() => unbanUser(u.userEmail)}
+                        disabled={banBusyEmail === u.userEmail}
+                        className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg font-bold"
+                      >
+                        ✓ Unban
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => banUser(u.userEmail)}
+                        disabled={banBusyEmail === u.userEmail}
+                        className="bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg font-bold"
+                      >
+                        ⛔ Ban
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
