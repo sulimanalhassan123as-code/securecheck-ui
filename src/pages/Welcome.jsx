@@ -2,6 +2,27 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { signInWithGoogle, getCurrentUser } from "../utils/auth";
 
+// Google blocks OAuth sign-in inside "embedded" browsers (WhatsApp, Instagram,
+// Facebook, TikTok, Line, WeChat in-app viewers) with error 403: disallowed_useragent.
+// We can't override that — it's enforced by Google — but we CAN detect it and tell
+// people exactly how to fix it before they hit the confusing Google error page.
+function detectInAppBrowser() {
+  const ua = navigator.userAgent || "";
+  const markers = [
+    { test: /FBAN|FBAV/i,        name: "Facebook" },
+    { test: /Instagram/i,        name: "Instagram" },
+    { test: /Line\//i,           name: "LINE" },
+    { test: /MicroMessenger/i,   name: "WeChat" },
+    { test: /TikTok/i,           name: "TikTok" },
+    { test: /WhatsApp/i,         name: "WhatsApp" },
+    { test: /; wv\)/i,           name: "an in-app" }, // generic Android WebView marker
+  ];
+  for (const m of markers) {
+    if (m.test.test(ua)) return m.name;
+  }
+  return null;
+}
+
 const API_BASE = import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
 export default function Welcome() {
@@ -13,6 +34,11 @@ export default function Welcome() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [canInstall, setCanInstall] = useState(false);
   const [googleUser, setGoogleUser] = useState(null);
+  const [inAppBrowserName, setInAppBrowserName] = useState(null);
+
+  useEffect(() => {
+    setInAppBrowserName(detectInAppBrowser());
+  }, []);
 
   useEffect(() => {
     fetch(`${API_BASE}/system`).catch(() => {});
@@ -116,6 +142,17 @@ export default function Welcome() {
             <div style={{ fontSize:13, color:"#64748b", marginTop:6 }}>Configure your environment to access the intelligence matrix.</div>
           </div>
 
+          {/* In-app browser warning — Google blocks OAuth sign-in here */}
+          {inAppBrowserName && !googleUser && (
+            <div style={{
+              background:"rgba(245,158,11,0.1)", border:"1.5px solid rgba(245,158,11,0.3)",
+              borderRadius:14, padding:"12px 14px", marginBottom:18, fontSize:12, color:"#92400e", lineHeight:1.5
+            }}>
+              <strong>⚠️ You're inside {inAppBrowserName}'s built-in browser.</strong><br/>
+              Google blocks sign-in from in-app browsers for security. Tap the <strong>⋮ menu</strong> (or share icon) above and choose <strong>"Open in Chrome"</strong> or <strong>"Open in Safari"</strong> — then sign in there.
+            </div>
+          )}
+
           {/* Fields */}
           <div style={{ display:"flex", flexDirection:"column", gap:18 }}>
             {googleUser ? (
@@ -134,10 +171,14 @@ export default function Welcome() {
             ) : (
               <button
                 onClick={continueWithGoogle}
+                disabled={!!inAppBrowserName}
+                title={inAppBrowserName ? "Open this page in Chrome/Safari first — Google blocks sign-in inside in-app browsers." : undefined}
                 style={{
                   width:"100%", padding:"12px", display:"flex", alignItems:"center",
-                  justifyContent:"center", gap:10, background:"#fff",
-                  border:"1.5px solid #e2e8f0", borderRadius:14, cursor:"pointer",
+                  justifyContent:"center", gap:10, background: inAppBrowserName ? "#f1f5f9" : "#fff",
+                  border:"1.5px solid #e2e8f0", borderRadius:14,
+                  cursor: inAppBrowserName ? "not-allowed" : "pointer",
+                  opacity: inAppBrowserName ? 0.55 : 1,
                   fontWeight:700, fontSize:13, color:"#0f172a"
                 }}
               >
