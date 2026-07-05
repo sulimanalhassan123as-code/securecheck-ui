@@ -13,9 +13,13 @@ function detectInAppBrowser() {
     { test: /Instagram/i,        name: "Instagram" },
     { test: /Line\//i,           name: "LINE" },
     { test: /MicroMessenger/i,   name: "WeChat" },
-    { test: /TikTok/i,           name: "TikTok" },
+    { test: /TikTok|musical_ly/i, name: "TikTok" },
     { test: /WhatsApp/i,         name: "WhatsApp" },
-    { test: /; wv\)/i,           name: "an in-app" }, // generic Android WebView marker
+    { test: /Telegram/i,         name: "Telegram" },
+    { test: /Twitter/i,          name: "Twitter/X" },
+    { test: /Snapchat/i,         name: "Snapchat" },
+    { test: /Pinterest/i,        name: "Pinterest" },
+    { test: /; wv\)/i,           name: "an in-app" }, // generic Android WebView marker (covers Telegram/others without a specific token)
   ];
   for (const m of markers) {
     if (m.test.test(ua)) return m.name;
