@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageShell from "../components/PageShell";
 import { Gate } from "../utils/gateApi";
 

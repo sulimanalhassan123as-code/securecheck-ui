@@ -84,7 +84,7 @@ export default function Home() {
       color: "#0f172a",
       padding: "0 0 40px",
       position: "relative",
-      overflow: "hidden"
+      overflowX: "hidden"
     }}>
 
       {/* Subtle grid overlay */}

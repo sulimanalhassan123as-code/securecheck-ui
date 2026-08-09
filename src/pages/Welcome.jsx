@@ -105,7 +105,7 @@ export default function Welcome() {
       minHeight:"100vh",
       background:"linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 40%, #f0fdf4 70%, #faf5ff 100%)",
       display:"flex", alignItems:"center", justifyContent:"center",
-      padding:20, fontFamily:"Inter,sans-serif", position:"relative", overflow:"hidden"
+      padding:20, fontFamily:"Inter,sans-serif", position:"relative", overflowX:"hidden"
     }}>
 
       {/* Orbs */}
