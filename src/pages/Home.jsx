@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Footer from "../components/Footer";
+import { getCurrentUser } from "../utils/auth";
 
 const API_BASE =
   import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
@@ -11,6 +12,30 @@ export default function Home() {
   const [operatorLevel, setOperatorLevel] = useState("");
   const [operatorPurpose, setOperatorPurpose] = useState("");
   const [customCards, setCustomCards] = useState([]);
+  const [stats, setStats] = useState({ modulesActive: 8, scansToday: 0, threatsFound: 0, aiQueriesToday: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    const params = new URLSearchParams();
+    if (user?.email) params.set("userEmail", user.email);
+    else if (user?.id) params.set("userId", user.id);
+
+    fetch(`${API_BASE}/analyzer/dashboard-stats?${params.toString()}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          setStats({
+            modulesActive: data.modulesActive,
+            scansToday: data.scansToday,
+            threatsFound: data.threatsFound,
+            aiQueriesToday: data.aiQueriesToday,
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   useEffect(() => {
     if (!localStorage.getItem("cyberzero_onboarded")) navigate("/welcome");
@@ -176,19 +201,33 @@ export default function Home() {
         {/* ── Stats Row ── */}
         <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit,minmax(140px,1fr))", gap:14, marginBottom:28 }}>
           {[
-            { label:"Modules Active", value:"8", color:"#4f46e5" },
-            { label:"Scans Today",    value:"0", color:"#059669" },
-            { label:"Threats Found",  value:"0", color:"#dc2626" },
-            { label:"AI Queries",     value:"0", color:"#7c3aed" },
+            { label:"Modules Active", value: stats.modulesActive, color:"#4f46e5", path: null },
+            { label:"Scans Today",    value: stats.scansToday,    color:"#059669", path: "/scanner" },
+            { label:"Threats Found",  value: stats.threatsFound,  color:"#dc2626", path: "/scanner" },
+            { label:"AI Queries",     value: stats.aiQueriesToday, color:"#7c3aed", path: "/ai" },
           ].map((s, i) => (
-            <div key={i} style={{
-              background:"#fff", border:"1.5px solid #e2e8f0",
-              borderTop:`3px solid ${s.color}`,
-              borderRadius:16, padding:"16px", textAlign:"center",
-              boxShadow:"0 2px 12px rgba(0,0,0,0.05)"
-            }}>
-              <div style={{ fontSize:28, fontWeight:900, color: s.color }}>{s.value}</div>
+            <div
+              key={i}
+              onClick={() => s.path && navigate(s.path)}
+              style={{
+                background:"#fff", border:"1.5px solid #e2e8f0",
+                borderTop:`3px solid ${s.color}`,
+                borderRadius:16, padding:"16px", textAlign:"center",
+                boxShadow:"0 2px 12px rgba(0,0,0,0.05)",
+                cursor: s.path ? "pointer" : "default",
+                transition:"transform 0.15s ease, box-shadow 0.15s ease",
+                position:"relative"
+              }}
+              onMouseEnter={e => { if (s.path) { e.currentTarget.style.transform="translateY(-2px)"; e.currentTarget.style.boxShadow="0 6px 20px rgba(0,0,0,0.1)"; } }}
+              onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.05)"; }}
+            >
+              <div style={{ fontSize:28, fontWeight:900, color: s.color }}>
+                {statsLoading ? "—" : s.value}
+              </div>
               <div style={{ fontSize:11, color:"#64748b", fontWeight:600, marginTop:2 }}>{s.label}</div>
+              {s.path && (
+                <div style={{ fontSize:9, color:"#94a3b8", marginTop:6, fontWeight:700 }}>Tap to view →</div>
+              )}
             </div>
           ))}
         </div>

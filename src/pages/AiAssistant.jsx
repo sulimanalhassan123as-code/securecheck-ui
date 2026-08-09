@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "../utils/auth";
 
 const API_BASE = import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
@@ -45,7 +46,9 @@ export default function AiAssistant() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userMessage,
-          history: newMessages.slice(-12).map(m => ({ role: m.role, content: m.content }))
+          history: newMessages.slice(-12).map(m => ({ role: m.role, content: m.content })),
+          userId: getCurrentUser()?.id || null,
+          userEmail: getCurrentUser()?.email || null,
         })
       });
       const data = await res.json();
