@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getCurrentUser } from "../utils/auth";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -29,7 +30,14 @@ export default function ScanHistory({ refreshKey, onSelectScan }) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(`${API_BASE}/analyzer/history?limit=15`)
+
+    // Get current user to isolate scan history
+    const user = getCurrentUser();
+    const params = new URLSearchParams({ limit: "15" });
+    if (user?.email) params.set("userEmail", user.email);
+    else if (user?.id) params.set("userId", user.id);
+
+    fetch(`${API_BASE}/analyzer/history?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => {
         if (cancelled) return;
@@ -44,7 +52,7 @@ export default function ScanHistory({ refreshKey, onSelectScan }) {
   if (loading) {
     return (
       <div className="bg-[#0f172a] border border-cyan-900 rounded-2xl p-6 mt-6 text-gray-400 text-sm animate-pulse">
-        Loading scan history...
+        Loading your scan history...
       </div>
     );
   }
@@ -60,14 +68,17 @@ export default function ScanHistory({ refreshKey, onSelectScan }) {
   if (scans.length === 0) {
     return (
       <div className="bg-[#0f172a] border border-cyan-900 rounded-2xl p-6 mt-6 text-gray-500 text-sm">
-        No scans yet — run a scan above to start building history.
+        No scans yet — run a scan above to start building your history. Only you can see your scans.
       </div>
     );
   }
 
   return (
     <div className="bg-[#0f172a] border border-cyan-900 rounded-2xl p-6 mt-6">
-      <h3 className="text-lg font-bold text-cyan-400 mb-4">📜 Scan History</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-cyan-400">📜 Your Scan History</h3>
+        <span className="text-xs text-gray-500">🔒 Private — only your scans</span>
+      </div>
       <div className="space-y-2">
         {scans.map((s) => (
           <button

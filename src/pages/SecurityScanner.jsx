@@ -49,7 +49,7 @@ export default function SecurityScanner() {
     }
 
     if (!quota.canScan) {
-      alert(`You've used your free scan for today (${quota.usedToday}/${quota.freeLimit}). Come back tomorrow, or unlock Deep Analysis for unlimited-feeling access via MoMo.`);
+      alert(`You've used your free scan for today (${quota.usedToday}/${quota.freeLimit}). Come back tomorrow, or unlock Deep Analysis via MoMo.`);
       return;
     }
 
@@ -63,9 +63,7 @@ export default function SecurityScanner() {
       const currentUser = getCurrentUser();
       const startRes = await fetch(`${API_BASE}/scans/start`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           targetUrl,
           userId: currentUser?.id || null,
@@ -74,42 +72,27 @@ export default function SecurityScanner() {
         })
       });
 
-      if (!startRes.ok) {
-        throw new Error("Failed to start scan");
-      }
-
+      if (!startRes.ok) throw new Error("Failed to start scan");
       const startData = await startRes.json();
-
-      if (!startData.scanId) {
-        throw new Error("No scanId returned");
-      }
+      if (!startData.scanId) throw new Error("No scanId returned");
 
       const scanId = startData.scanId;
 
       const pollInterval = setInterval(async () => {
         try {
-          const scanRes = await fetch(
-            `${API_BASE}/scans/${scanId}`
-          );
-
-          if (!scanRes.ok) {
-            throw new Error("Failed to fetch scan");
-          }
-
+          const scanRes = await fetch(`${API_BASE}/scans/${scanId}`);
+          if (!scanRes.ok) throw new Error("Failed to fetch scan");
           const scanData = await scanRes.json();
 
           if (scanData.status === "COMPLETED") {
             clearInterval(pollInterval);
-
             setFindings(scanData.findings || []);
-
             setTechnologies([
               `Security Score: ${scanData.securityScore ?? 0}`,
               `Duration: ${scanData.durationMs ?? 0} ms`,
               scanData.scanType || "WEB_HEADERS",
               scanData.status
             ]);
-
             setIsScanning(false);
             setHistoryKey((k) => k + 1);
             Gate.incrementQuota(deviceId).then(refreshGateState);
@@ -164,10 +147,7 @@ export default function SecurityScanner() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Deep scan failed");
-      }
+      if (!res.ok) throw new Error(data.error || "Deep scan failed");
 
       setDeepReport(data);
       setFindings(data.findings || []);
@@ -180,11 +160,16 @@ export default function SecurityScanner() {
     }
   };
 
-  // Re-open a past scan from history without re-running it
+  // Re-open a past scan from history — user-isolated
   const openPastScan = async (scanId) => {
     setHistoryError("");
     try {
-      const res = await fetch(`${API_BASE}/analyzer/scan/${scanId}`);
+      const currentUser = getCurrentUser();
+      const params = new URLSearchParams();
+      if (currentUser?.email) params.set("userEmail", currentUser.email);
+      else if (currentUser?.id) params.set("userId", currentUser.id);
+
+      const res = await fetch(`${API_BASE}/analyzer/scan/${scanId}?${params.toString()}`);
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Could not load that scan");
 
@@ -223,13 +208,16 @@ export default function SecurityScanner() {
     <div className="min-h-screen bg-[#050b1a] text-white p-6">
       <div className="max-w-6xl mx-auto">
 
-        <h1 className="text-4xl font-bold mb-2">
-          Security Scanner Workspace
-        </h1>
+        <h1 className="text-4xl font-bold mb-2">Security Scanner Workspace</h1>
+        <p className="text-gray-400 mb-1">Cyber-Zero Security Analysis Engine</p>
 
-        <p className="text-gray-400 mb-1">
-          Cyber-Zero Security Analysis Engine
-        </p>
+        {/* ScamWatch cross-link */}
+        <div className="mb-4 mt-3">
+          <a href="https://scamwatch-ghana.vercel.app" target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm bg-[#0c1428] border border-cyan-900 rounded-lg px-4 py-2 text-cyan-400 hover:bg-[#112038] transition">
+            🛡️ Report a scam? Visit <b>ScamWatch Ghana</b> →
+          </a>
+        </div>
 
         <div className="flex flex-wrap gap-3 mb-6 text-xs font-mono">
           <span className={`px-3 py-1.5 rounded-lg border ${quota.canScan ? "border-emerald-800 bg-emerald-950/40 text-emerald-400" : "border-amber-800 bg-amber-950/40 text-amber-400"}`}>
@@ -237,6 +225,9 @@ export default function SecurityScanner() {
           </span>
           <span className={`px-3 py-1.5 rounded-lg border ${unlocked ? "border-emerald-800 bg-emerald-950/40 text-emerald-400" : "border-purple-800 bg-purple-950/40 text-purple-300"}`}>
             {unlocked ? "🔓 Deep Analysis unlocked" : "🔒 Deep Analysis — pay to unlock"}
+          </span>
+          <span className="px-3 py-1.5 rounded-lg border border-blue-800 bg-blue-950/40 text-blue-400">
+            🔒 Your scans are private
           </span>
         </div>
 
@@ -251,9 +242,7 @@ export default function SecurityScanner() {
           />
 
           {isScanning && (
-            <div className="mt-4 text-cyan-400 animate-pulse">
-              Scanning target...
-            </div>
+            <div className="mt-4 text-cyan-400 animate-pulse">Scanning target...</div>
           )}
 
           {isDeepScanning && (
@@ -263,16 +252,12 @@ export default function SecurityScanner() {
           )}
 
           {deepError && (
-            <div className="mt-4 text-red-400 text-sm">
-              ⚠️ {deepError}
-            </div>
+            <div className="mt-4 text-red-400 text-sm">⚠️ {deepError}</div>
           )}
         </div>
 
         <DeepScanReport report={deepReport} />
-
         <ThreatMatrix findings={findings} />
-
         <TechnologyCard technologies={technologies} />
 
         {historyError && (
@@ -296,4 +281,3 @@ export default function SecurityScanner() {
     </div>
   );
 }
-

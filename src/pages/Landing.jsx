@@ -44,12 +44,20 @@ export default function Landing() {
             <span style={{ color:"#4f46e5" }}>Check AI</span>
           </div>
         </div>
-        <button onClick={() => navigate("/welcome")} style={{
+        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+          <a href="https://scamwatch-ghana.vercel.app" target="_blank" rel="noopener noreferrer" style={{
+            background:"rgba(14,165,233,0.1)", border:"1px solid rgba(14,165,233,0.3)",
+            borderRadius:12, padding:"9px 18px",
+            color:"#0ea5e9", fontWeight:700, fontSize:13, textDecoration:"none",
+            display:"flex", alignItems:"center", gap:6
+          }}>🛡️ ScamWatch Ghana</a>
+          <button onClick={() => navigate("/welcome")} style={{
           background:"linear-gradient(135deg,#4f46e5,#7c3aed)",
           border:"none", borderRadius:12, padding:"9px 22px",
           color:"#fff", fontWeight:800, fontSize:13, cursor:"pointer",
           boxShadow:"0 4px 16px rgba(79,70,229,0.3)"
         }}>Launch App →</button>
+        </div>
       </nav>
 
       {/* ── HERO ── */}
