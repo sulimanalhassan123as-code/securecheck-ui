@@ -53,6 +53,9 @@ export default function AdminOps() {
   const [schedulesLoading, setSchedulesLoading] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({ targetUrl: "", label: "", cadence: "daily" });
   const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [tgBotToken, setTgBotToken] = useState("");
+  const [tgStatus, setTgStatus] = useState("");
+  const [tgSaving, setTgSaving] = useState(false);
 
   // Load all scans for admin
   const loadAllScans = async () => {
@@ -119,6 +122,7 @@ export default function AdminOps() {
     }
     if (authed && tab === "Scheduled Scans" && schedules.length === 0) {
       loadSchedules();
+      loadTelegram();
     }
   }, [authed, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -370,6 +374,45 @@ export default function AdminOps() {
       method: "DELETE", headers: adminHeaders(),
     });
     loadSchedules();
+  };
+
+  // ── Telegram config ──
+  const saveTelegram = async () => {
+    if (!tgBotToken.trim()) return alert("Bot token is required");
+    setTgSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/telegram/config`, {
+        method: "POST", headers: adminHeaders(),
+        body: JSON.stringify({ botToken: tgBotToken.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Set the webhook to auto-capture chat ID
+        const webhookUrl = `${API_BASE.replace(/\/api$/, "")}/api/telegram/webhook`;
+        await fetch(`https://api.telegram.org/bot${tgBotToken.trim()}/setWebhook`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: webhookUrl }),
+        });
+        setTgStatus("Bot token saved! Send any message to your bot on Telegram to auto-link alerts.");
+      } else {
+        alert(data.error || "Failed to save Telegram config");
+      }
+    } catch (e) { alert("Failed to save Telegram config"); }
+    setTgSaving(false);
+  };
+
+  const loadTelegram = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/telegram/config`, { headers: adminHeaders() });
+      const data = await res.json();
+      if (data.success && data.config?.botToken) {
+        setTgBotToken(data.config.botToken);
+        if (data.config.chatId) {
+          setTgStatus("Telegram alerts active! Chat ID: " + data.config.chatId);
+        }
+      }
+    } catch (e) { /* ignore */ }
   };
 
   if (!authed) {
@@ -769,6 +812,35 @@ export default function AdminOps() {
 
         {tab === "Scheduled Scans" && (
           <div className="max-w-2xl space-y-4">
+            {/* Telegram Alert Config */}
+            <div className="bg-[#0f172a] border border-gray-800 rounded-xl p-4">
+              <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                Telegram Alert Setup
+              </h3>
+              <div className="space-y-2">
+                <input
+                  type="password"
+                  placeholder="Bot Token (from @BotFather)"
+                  value={tgBotToken}
+                  onChange={(e) => setTgBotToken(e.target.value)}
+                  className="w-full bg-[#1e293b] text-white text-sm rounded-lg px-3 py-2 border border-gray-700 focus:border-cyan-500 outline-none"
+                />
+                <button
+                  onClick={saveTelegram}
+                  disabled={tgSaving}
+                  className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-bold"
+                >
+                  {tgSaving ? "Saving..." : "Save & Auto-Link"}
+                </button>
+                {tgStatus && (
+                  <p className="text-xs text-emerald-400 mt-2">{tgStatus}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Paste your bot token. After saving, send any message to your bot on Telegram to auto-capture your chat ID. Alerts will fire automatically when scans find critical vulnerabilities.
+                </p>
+              </div>
+            </div>
+
             <div className="bg-[#0f172a] border border-gray-800 rounded-xl p-4">
               <h3 className="text-sm font-bold text-white mb-3">Create Scheduled Scan</h3>
               <div className="space-y-2">
