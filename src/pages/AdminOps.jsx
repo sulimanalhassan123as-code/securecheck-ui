@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import PageShell from "../components/PageShell";
 import { Gate } from "../utils/gateApi";
+import ScoreTimeline from "../components/ScoreTimeline";
+import { generatePdfReport } from "../utils/pdfReport";
 
 const API_BASE =
   import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
-const TABS = ["Scan Center", "Payments", "Activity", "Users", "Manage Cards", "Payment Lab", "Danger Zone"];
+const TABS = ["Scan Center", "Payments", "Activity", "Users", "Manage Cards", "Payment Lab", "Scheduled Scans", "Danger Zone"];
 
 export default function AdminOps() {
   const [pass, setPass] = useState("");
@@ -45,6 +47,12 @@ export default function AdminOps() {
   const [platformStats, setPlatformStats] = useState(null);
   const [waPhoneInput, setWaPhoneInput] = useState({});  // scanId -> phone number
   const [waMessage, setWaMessage] = useState({});  // scanId -> custom message
+
+  // ── Scheduled Scans state ──
+  const [schedules, setSchedules] = useState([]);
+  const [schedulesLoading, setSchedulesLoading] = useState(false);
+  const [scheduleForm, setScheduleForm] = useState({ targetUrl: "", label: "", cadence: "daily" });
+  const [scheduleSaving, setScheduleSaving] = useState(false);
 
   // Load all scans for admin
   const loadAllScans = async () => {
@@ -108,6 +116,9 @@ export default function AdminOps() {
     if (authed && tab === "Scan Center" && allScans.length === 0) {
       loadAllScans();
       loadPlatformStats();
+    }
+    if (authed && tab === "Scheduled Scans" && schedules.length === 0) {
+      loadSchedules();
     }
   }, [authed, tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -318,6 +329,49 @@ export default function AdminOps() {
     setCardLoading(false);
   };
 
+  // ── Scheduled Scans CRUD ──
+  const loadSchedules = async () => {
+    setSchedulesLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/scheduler`, { headers: adminHeaders() });
+      const data = await res.json();
+      if (data.success) setSchedules(data.scheduled);
+    } catch (e) { console.error("Failed to load schedules:", e); }
+    setSchedulesLoading(false);
+  };
+
+  const addSchedule = async () => {
+    if (!scheduleForm.targetUrl.trim()) return alert("Target URL is required");
+    setScheduleSaving(true);
+    try {
+      const res = await fetch(`${API_BASE}/scheduler`, {
+        method: "POST", headers: adminHeaders(),
+        body: JSON.stringify(scheduleForm),
+      });
+      const data = await res.json();
+      if (!data.success) alert(data.error || "Failed to create schedule");
+      else setScheduleForm({ targetUrl: "", label: "", cadence: "daily" });
+    } catch (e) { alert("Failed to reach the API"); }
+    setScheduleSaving(false);
+    loadSchedules();
+  };
+
+  const toggleSchedule = async (id, isActive) => {
+    await fetch(`${API_BASE}/scheduler/${id}`, {
+      method: "PATCH", headers: adminHeaders(),
+      body: JSON.stringify({ isActive: !isActive }),
+    });
+    loadSchedules();
+  };
+
+  const deleteSchedule = async (id) => {
+    if (!confirm("Delete this scheduled scan?")) return;
+    await fetch(`${API_BASE}/scheduler/${id}`, {
+      method: "DELETE", headers: adminHeaders(),
+    });
+    loadSchedules();
+  };
+
   if (!authed) {
     return (
       <PageShell title="Admin Ops" icon="🔐">
@@ -525,6 +579,29 @@ export default function AdminOps() {
                     ) : (
                       <p className="text-sm text-gray-500">No findings — this scan was clean.</p>
                     )}
+
+                    {/* PDF Report Download + Score Timeline */}
+                    <div className="flex gap-2 mt-3">
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_BASE}/analyzer/scan/${scan.id}`, {
+                              headers: { Authorization: `Bearer ${adminToken}`, "x-admin-key": pass },
+                            });
+                            const data = await res.json();
+                            if (data.success && data.scan) generatePdfReport(data.scan);
+                            else alert("Failed to load full scan data for PDF");
+                          } catch (e) { alert("Failed to generate PDF report"); }
+                        }}
+                        className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-2 rounded-lg font-bold"
+                      >📄 Download PDF Report</button>
+                    </div>
+
+                    <ScoreTimeline
+                      targetUrl={scan.targetUrl}
+                      adminToken={adminToken}
+                      adminKey={pass}
+                    />
                   </div>
                 )}
               </div>
@@ -686,6 +763,108 @@ export default function AdminOps() {
             </button>
             {cardReport && (
               <pre className="bg-[#0f172a] border border-gray-800 rounded-xl p-4 text-xs text-gray-300 overflow-x-auto">{JSON.stringify(cardReport, null, 2)}</pre>
+            )}
+          </div>
+        )}
+
+        {tab === "Scheduled Scans" && (
+          <div className="max-w-2xl space-y-4">
+            <div className="bg-[#0f172a] border border-gray-800 rounded-xl p-4">
+              <h3 className="text-sm font-bold text-white mb-3">Create Scheduled Scan</h3>
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="https://example.com"
+                  value={scheduleForm.targetUrl}
+                  onChange={(e) => setScheduleForm({ ...scheduleForm, targetUrl: e.target.value })}
+                  className="w-full bg-[#1e293b] text-white text-sm rounded-lg px-3 py-2 border border-gray-700 focus:border-cyan-500 outline-none"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Label (optional)"
+                    value={scheduleForm.label}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, label: e.target.value })}
+                    className="flex-1 bg-[#1e293b] text-white text-sm rounded-lg px-3 py-2 border border-gray-700 focus:border-cyan-500 outline-none"
+                  />
+                  <select
+                    value={scheduleForm.cadence}
+                    onChange={(e) => setScheduleForm({ ...scheduleForm, cadence: e.target.value })}
+                    className="bg-[#1e293b] text-white text-sm rounded-lg px-3 py-2 border border-gray-700 focus:border-cyan-500 outline-none"
+                  >
+                    <option value="hourly">Hourly</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                  </select>
+                  <button
+                    onClick={addSchedule}
+                    disabled={scheduleSaving}
+                    className="bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg font-bold whitespace-nowrap"
+                  >
+                    {scheduleSaving ? "Adding..." : "+ Add"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={loadSchedules}
+              disabled={schedulesLoading}
+              className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-xs px-3 py-2 rounded-lg font-medium"
+            >
+              {schedulesLoading ? "Loading..." : "Refresh Schedules"}
+            </button>
+
+            {schedules.length === 0 && !schedulesLoading ? (
+              <p className="text-sm text-gray-500 text-center py-8">
+                No scheduled scans yet. Create one above to auto-scan your sites.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {schedules.map((s) => (
+                  <div key={s.id} className="bg-[#0f172a] border border-gray-800 rounded-xl p-3 flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white font-medium truncate">{s.targetUrl}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {s.label && <span className="text-xs text-gray-400">{s.label}</span>}
+                        <span className="text-xs text-cyan-400 uppercase">{s.cadence}</span>
+                        {s.lastRunAt && (
+                          <span className="text-xs text-gray-500">
+                            Last: {new Date(s.lastRunAt).toLocaleDateString()}
+                          </span>
+                        )}
+                        {s.lastScore != null && (
+                          <span className={s.lastScore >= 80 ? "text-xs text-emerald-400" : "text-xs text-red-400"}>
+                            Score: {s.lastScore}
+                          </span>
+                        )}
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${s.isActive ? "bg-emerald-900 text-emerald-400" : "bg-gray-800 text-gray-500"}`}>
+                          {s.isActive ? "Active" : "Paused"}
+                        </span>
+                      </div>
+                      {s.nextRunAt && (
+                        <p className="text-xs text-gray-600 mt-1">
+                          Next: {new Date(s.nextRunAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 ml-3">
+                      <button
+                        onClick={() => toggleSchedule(s.id, s.isActive)}
+                        className="text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-700 hover:bg-gray-600 text-white"
+                      >
+                        {s.isActive ? "Pause" : "Resume"}
+                      </button>
+                      <button
+                        onClick={() => deleteSchedule(s.id)}
+                        className="text-xs px-3 py-1.5 rounded-lg font-medium bg-red-900 hover:bg-red-800 text-red-300"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
         )}
