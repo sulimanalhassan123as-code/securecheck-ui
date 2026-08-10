@@ -23,9 +23,16 @@ export default function PaymentModal({ deviceId, onClose, onUnlocked }) {
       return;
     }
     setLoading(true);
-    await Gate.confirmPayment(deviceId, payment.reference, txId.trim(), phone.trim());
-    setStep("waiting");
+    const res = await Gate.confirmPayment(deviceId, payment.reference, txId.trim(), phone.trim());
     setLoading(false);
+    if (res.error) {
+      alert("Submission failed: " + res.error);
+      return;
+    }
+    if (res.alreadySubmitted) {
+      alert("This payment was already submitted. Waiting for approval.");
+    }
+    setStep("waiting");
     setPolling(true);
   };
 
