@@ -167,6 +167,22 @@ export default function AdminOps() {
     setLoading(false);
   };
 
+  // Auto-load payments when switching to Payments tab
+  useEffect(() => {
+    if (tab === "Payments" && authed && pass) {
+      loadPayments();
+    }
+  }, [tab]);
+
+  // Auto-refresh payments every 15 seconds when on Payments tab
+  useEffect(() => {
+    if (tab !== "Payments" || !authed || !pass) return;
+    const interval = setInterval(() => {
+      loadPayments();
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [tab, authed, pass]);
+
   const approve = async (id) => {
     await Gate.adminApprovePayment(pass, id);
     loadPayments();
@@ -659,22 +675,35 @@ export default function AdminOps() {
               disabled={loading}
               className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-lg py-3 px-6 font-medium text-sm"
             >
-              {loading ? "Loading..." : "🔄 Load Pending Payments"}
+              {loading ? "Loading..." : "🔄 Refresh Payments"}
+              {payments.filter(p => p.status === "pending_review").length > 0 && (
+                <span className="ml-2 bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
+                  {payments.filter(p => p.status === "pending_review").length} pending
+                </span>
+              )}
             </button>
             <div className="space-y-3">
               {payments.length === 0 && (
                 <p className="text-gray-500 text-sm">No pending payments loaded yet.</p>
               )}
               {payments.map((p) => (
-                <div key={p.id} className="bg-[#0f172a] border border-gray-800 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div key={p.id} className={`bg-[#0f172a] border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${p.status === 'approved' ? 'border-emerald-700' : p.status === 'rejected' ? 'border-red-800' : 'border-yellow-700'}`}>
                   <div className="text-sm">
-                    <div className="font-mono text-white">{p.reference} — GHS {p.amount_ghs}</div>
-                    <div className="text-gray-500 text-xs">MoMo Tx: {p.momo_transaction_id} · Phone: {p.phone_used || "n/a"}</div>
-                    <div className="text-gray-600 text-[11px]">Device: {p.device_id}</div>
+                    <div className="font-mono text-white">{p.reference} — GHS {p.amount}</div>
+                    <div className="text-gray-400 text-xs">MoMo Tx: {p.momoTransactionId || 'Pending'} · Phone: {p.phoneUsed || "n/a"}</div>
+                    <div className="text-gray-600 text-[11px]">Device: {p.deviceId?.substring(0, 16)}</div>
+                    <div className={`text-[11px] mt-1 font-medium ${p.status === 'approved' ? 'text-emerald-400' : p.status === 'rejected' ? 'text-red-400' : 'text-yellow-400'}`}>
+                      {p.status === 'approved' ? '✓ Approved' : p.status === 'rejected' ? '✕ Rejected' : '⏳ Pending Review'}
+                      {p.status === 'approved' && p.unlockedUntil ? ` · unlocked until ${new Date(p.unlockedUntil).toLocaleString()}` : ''}
+                    </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => approve(p.id)} className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg font-bold">✓ Approve</button>
-                    <button onClick={() => reject(p.id)} className="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-2 rounded-lg font-bold">✕ Reject</button>
+                    {p.status === 'pending_review' && (
+                      <>
+                        <button onClick={() => approve(p.id)} className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-2 rounded-lg font-bold">✓ Approve</button>
+                        <button onClick={() => reject(p.id)} className="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-2 rounded-lg font-bold">✕ Reject</button>
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
