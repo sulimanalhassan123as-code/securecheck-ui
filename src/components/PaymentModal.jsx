@@ -2,19 +2,29 @@ import { useState, useEffect } from "react";
 import { Gate } from "../utils/gateApi";
 
 export default function PaymentModal({ deviceId, onClose, onUnlocked }) {
-  const [step, setStep] = useState("init"); // init -> instructions -> waiting
+  const [step, setStep] = useState("init"); // init -> instructions -> waiting -> error
   const [payment, setPayment] = useState(null);
   const [txId, setTxId] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [polling, setPolling] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const startPayment = async () => {
     setLoading(true);
+    setErrorMsg("");
     const data = await Gate.initiatePayment(deviceId);
+    setLoading(false);
+    if (data.error) {
+      setErrorMsg(data.error);
+      return;
+    }
+    if (!data.reference) {
+      setErrorMsg("Failed to generate payment reference. Please try again.");
+      return;
+    }
     setPayment(data);
     setStep("instructions");
-    setLoading(false);
   };
 
   const submitProof = async () => {
@@ -22,16 +32,28 @@ export default function PaymentModal({ deviceId, onClose, onUnlocked }) {
       alert("Enter your MoMo transaction ID");
       return;
     }
-    setLoading(true);
-    const res = await Gate.confirmPayment(deviceId, payment.reference, txId.trim(), phone.trim());
-    setLoading(false);
-    if (res.error) {
-      alert("Submission failed: " + res.error);
+    if (!payment || !payment.reference) {
+      setErrorMsg("Payment session expired. Please restart.");
+      setStep("init");
       return;
     }
-    if (res.alreadySubmitted) {
-      alert("This payment was already submitted. Waiting for approval.");
+
+    setLoading(true);
+    setErrorMsg("");
+    const res = await Gate.confirmPayment(
+      deviceId,
+      payment.reference,
+      txId.trim(),
+      phone.trim()
+    );
+    setLoading(false);
+
+    if (res.error) {
+      setErrorMsg("Submission failed: " + res.error);
+      return;
     }
+
+    // Success — move to waiting
     setStep("waiting");
     setPolling(true);
   };
@@ -59,6 +81,12 @@ export default function PaymentModal({ deviceId, onClose, onUnlocked }) {
           <h3 className="text-lg font-bold text-purple-300">🔒 Deep Security Scan</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white">✕</button>
         </div>
+
+        {errorMsg && (
+          <div className="bg-red-950/50 border border-red-800 rounded-lg p-3 mb-4 text-sm text-red-300">
+            ⚠️ {errorMsg}
+          </div>
+        )}
 
         {step === "init" && (
           <>
@@ -116,8 +144,11 @@ export default function PaymentModal({ deviceId, onClose, onUnlocked }) {
         {step === "waiting" && (
           <div className="text-center py-6">
             <div className="w-10 h-10 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-sm text-gray-300">Waiting for payment approval...</p>
+            <p className="text-sm text-gray-300">Payment submitted! Waiting for admin approval...</p>
             <p className="text-xs text-gray-500 mt-2">
+              Reference: <span className="font-mono text-white">{payment?.reference}</span>
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
               This unlocks automatically once confirmed — keep this open or check back shortly.
             </p>
           </div>
