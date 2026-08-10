@@ -56,6 +56,10 @@ export default function PaymentModal({ deviceId, onClose, onUnlocked }) {
     // Success — move to waiting
     setStep("waiting");
     setPolling(true);
+    // Track if Telegram notification was sent
+    if (res.telegramSent === false) {
+      setErrorMsg("Payment submitted, but admin notification failed. Please contact support directly.");
+    }
   };
 
   useEffect(() => {
@@ -144,7 +148,8 @@ export default function PaymentModal({ deviceId, onClose, onUnlocked }) {
         {step === "waiting" && (
           <div className="text-center py-6">
             <div className="w-10 h-10 border-2 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-sm text-gray-300">Payment submitted! Waiting for admin approval...</p>
+            <p className="text-sm text-gray-300">Payment submitted! Admin notified — waiting for approval...</p>
+            <p className="text-xs text-emerald-400 mt-2">✓ Telegram alert sent to admin</p>
             <p className="text-xs text-gray-500 mt-2">
               Reference: <span className="font-mono text-white">{payment?.reference}</span>
             </p>
