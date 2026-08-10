@@ -1,8 +1,9 @@
-const GATE_URL = "https://superagent-7ce6afb1.base44.app/functions/securecheckGate";
+const API_BASE =
+  import.meta.env.VITE_API_URL || "https://securecheck-api.onrender.com/api";
 
 async function callGate(action, payload = {}) {
   try {
-    const res = await fetch(GATE_URL, {
+    const res = await fetch(`${API_BASE}/gate/${action}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action, ...payload }),
