@@ -11,6 +11,7 @@ import SystemManagement from "./pages/SystemManagement";
 import AiAssistant from "./pages/AiAssistant";
 import Community from "./pages/Community";
 import AdminOps from "./pages/AdminOps";
+import HelpContact from "./pages/HelpContact";
 
 export default function Router() {
   return (
@@ -28,6 +29,7 @@ export default function Router() {
         <Route path="/system" element={<SystemManagement />} />
         <Route path="/ai" element={<AiAssistant />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/help" element={<HelpContact />} />
         <Route path="/admin-ops" element={<AdminOps />} />
       </Routes>
     </BrowserRouter>

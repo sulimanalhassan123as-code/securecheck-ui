@@ -12,7 +12,7 @@ export default function Home() {
   const [operatorLevel, setOperatorLevel] = useState("");
   const [operatorPurpose, setOperatorPurpose] = useState("");
   const [customCards, setCustomCards] = useState([]);
-  const [stats, setStats] = useState({ modulesActive: 8, scansToday: 0, threatsFound: 0, aiQueriesToday: 0 });
+  const [stats, setStats] = useState({ modulesActive: 11, scansToday: 0, threatsFound: 0, aiQueriesToday: 0 });
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
@@ -43,8 +43,6 @@ export default function Home() {
     setOperatorLevel(localStorage.getItem("cyberzero_level") || "Unknown");
     setOperatorPurpose(localStorage.getItem("cyberzero_purpose") || "Unassigned");
 
-    // Pull any admin-added feature tiles — new cards show up here instantly,
-    // no app update needed.
     fetch(`${API_BASE}/cards`)
       .then((r) => r.json())
       .then((data) => {
@@ -65,16 +63,35 @@ export default function Home() {
       .catch(() => {});
   }, [navigate]);
 
-  const cards = [
-    { name: "Security Scanner",       path: "/scanner",    icon: "🛡️", desc: "Scan websites and apps for vulnerabilities.",         bg: "#1e40af", accent: "#60a5fa" },
-    { name: "Technology Intelligence", path: "/technology", icon: "🔬", desc: "Detect framework footprints and system stacks.",       bg: "#065f46", accent: "#34d399" },
-    { name: "Domain Intelligence",     path: "/domain",     icon: "🌐", desc: "WHOIS, DNS and domain risk analysis.",                 bg: "#1d4ed8", accent: "#93c5fd" },
-    { name: "API Intelligence",        path: "/api",        icon: "🔌", desc: "Inspect endpoints, protocols and security rules.",     bg: "#4338ca", accent: "#a5b4fc" },
-    { name: "System Management",       path: "/system",     icon: "⚙️", desc: "Manage runtime, resources and cluster state.",        bg: "#374151", accent: "#d1d5db" },
-    { name: "AI Assistant",            path: "/ai",         icon: "🤖", desc: "Never Hide AI — neural security intelligence.",       bg: "#6d28d9", accent: "#c4b5fd" },
-    { name: "Community",               path: "/community",  icon: "💬", desc: "Post questions, get answers from the network.",        bg: "#0369a1", accent: "#7dd3fc" },
-    ...customCards,
+  // ── Core intelligence modules ──
+  const coreCards = [
+    { name: "Security Scanner",        path: "/scanner",    icon: "🛡️", desc: "Deep vulnerability scanning with real HTTP header analysis.",      bg: "#1e40af", accent: "#60a5fa" },
+    { name: "Technology Intelligence",  path: "/technology", icon: "🔬", desc: "Detect frameworks, CMS, CDN & database stacks.",               bg: "#065f46", accent: "#34d399" },
+    { name: "Domain Intelligence",       path: "/domain",     icon: "🌐", desc: "WHOIS, DNS records, SSL certs & domain risk analysis.",        bg: "#1d4ed8", accent: "#93c5fd" },
+    { name: "API Intelligence",           path: "/api",        icon: "🔌", desc: "Inspect endpoints, detect exposed routes & security rules.",  bg: "#4338ca", accent: "#a5b4fc" },
   ];
+
+  // ── AI & analysis tools ──
+  const aiCards = [
+    { name: "AI Assistant",             path: "/ai",         icon: "🤖", desc: "Never Hide AI — neural security intelligence & code review.",  bg: "#6d28d9", accent: "#c4b5fd" },
+    { name: "ScamWatch Ghana",            path: "https://scamwatch-ghana.vercel.app", icon: "⚠️", desc: "Report & verify scams. Community-driven fraud alerts.",  bg: "#b45309", accent: "#fbbf24", external: true },
+  ];
+
+  // ── System & community tools ──
+  const systemCards = [
+    { name: "System Management",        path: "/system",     icon: "⚙️", desc: "Manage runtime, resources and cluster state.",                 bg: "#374151", accent: "#d1d5db" },
+    { name: "Community Hub",              path: "/community",  icon: "💬", desc: "Post questions, share findings, get expert answers.",           bg: "#0369a1", accent: "#7dd3fc" },
+    { name: "Help & Contact",             path: "/help",       icon: "📞", desc: "Get support, report issues and contact the team.",            bg: "#0c4a6e", accent: "#38bdf8" },
+  ];
+
+  // ── Resource & education cards ──
+  const resourceCards = [
+    { name: "Security Blog",              path: "https://owasp.org/www-project-top-ten/", icon: "📚", desc: "OWASP Top 10 — learn the most critical web app security risks.", bg: "#7c2d12", accent: "#fb923c", external: true },
+    { name: "CVE Database",               path: "https://cve.mitre.org/", icon: "🔍", desc: "Search known vulnerabilities & CVE entries worldwide.",       bg: "#991b1b", accent: "#f87171", external: true },
+    { name: "Threat Intel Feed",          path: "https://www.cisa.gov/cybersecurity-advisories", icon: "📡", desc: "Real-time threat advisories from CISA.",                  bg: "#365314", accent: "#a3e635", external: true },
+  ];
+
+  const allCards = [...coreCards, ...aiCards, ...systemCards, ...resourceCards, ...customCards];
 
   return (
     <div style={{
@@ -185,12 +202,13 @@ export default function Home() {
             <div style={{
               display:"inline-flex", alignItems:"center", gap:8,
               background:"rgba(255,255,255,0.15)", border:"1px solid rgba(255,255,255,0.25)",
-              borderRadius:999, padding:"5px 14px", marginBottom:14
+              borderRadius:999, padding:"5px 16px", marginBottom:16
             }}>
-              <span style={{ fontSize:10, fontWeight:800, letterSpacing:3, textTransform:"uppercase" }}>Central Intelligence Suite</span>
+              <span style={{ width:7, height:7, borderRadius:"50%", background:"#34d399", display:"inline-block", animation:"pulse 2s infinite" }} />
+              <span style={{ fontSize:10, fontWeight:800, letterSpacing:2, textTransform:"uppercase" }}>All Systems Operational</span>
             </div>
-            <div style={{ fontSize:36, fontWeight:900, letterSpacing:-1, lineHeight:1.15, marginBottom:10 }}>
-              Cyber-Zero <span style={{ color:"#bfdbfe" }}>Developer Hub</span>
+            <div style={{ fontSize:24, fontWeight:900, marginBottom:8, letterSpacing:-0.5 }}>
+              Unified Security Operations Dashboard
             </div>
             <div style={{ fontSize:14, color:"rgba(255,255,255,0.8)", maxWidth:580 }}>
               Unified security workspaces for vulnerability assessment, technology footprint discovery, endpoint protection, and neural development guidance.
@@ -232,13 +250,19 @@ export default function Home() {
           ))}
         </div>
 
-        {/* ── Module Cards ── */}
-        <div style={{ marginBottom:10 }}>
-          <div style={{ fontSize:11, fontWeight:800, color:"#64748b", letterSpacing:3, textTransform:"uppercase", marginBottom:16 }}>Intelligence Modules</div>
+        {/* ── Core Intelligence Modules ── */}
+        <div style={{ marginBottom:28 }}>
+          <div style={{
+            display:"flex", alignItems:"center", gap:8, marginBottom:16
+          }}>
+            <div style={{ width:4, height:20, borderRadius:4, background:"linear-gradient(180deg,#4f46e5,#7c3aed)" }} />
+            <div style={{ fontSize:12, fontWeight:800, color:"#0f172a", letterSpacing:2, textTransform:"uppercase" }}>Core Intelligence</div>
+            <div style={{ flex:1, height:1, background:"rgba(99,102,241,0.12)" }} />
+          </div>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:14 }}>
-            {cards.map((card, i) => (
+            {coreCards.map((card, i) => (
               <div
-                key={i}
+                key={`core-${i}`}
                 onClick={() => (card.external ? window.open(card.path, "_blank") : navigate(card.path))}
                 style={{
                   background: card.bg,
@@ -268,6 +292,176 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ── AI & Analysis ── */}
+        <div style={{ marginBottom:28 }}>
+          <div style={{
+            display:"flex", alignItems:"center", gap:8, marginBottom:16
+          }}>
+            <div style={{ width:4, height:20, borderRadius:4, background:"linear-gradient(180deg,#7c3aed,#c4b5fd)" }} />
+            <div style={{ fontSize:12, fontWeight:800, color:"#0f172a", letterSpacing:2, textTransform:"uppercase" }}>AI & Analysis</div>
+            <div style={{ flex:1, height:1, background:"rgba(124,58,237,0.12)" }} />
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:14 }}>
+            {aiCards.map((card, i) => (
+              <div
+                key={`ai-${i}`}
+                onClick={() => (card.external ? window.open(card.path, "_blank") : navigate(card.path))}
+                style={{
+                  background: card.bg,
+                  borderRadius:20, padding:"20px 16px",
+                  cursor:"pointer", color:"#fff",
+                  boxShadow:`0 4px 20px rgba(0,0,0,0.18)`,
+                  transition:"transform 0.15s ease, box-shadow 0.15s ease",
+                  border:`1px solid rgba(255,255,255,0.12)`,
+                  position:"relative", overflow:"hidden"
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.25)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.18)"; }}
+                onTouchStart={e => { e.currentTarget.style.transform="scale(0.97)"; }}
+                onTouchEnd={e => { e.currentTarget.style.transform="scale(1)"; }}
+              >
+                <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.06)", pointerEvents:"none" }} />
+                <div style={{ fontSize:28, marginBottom:10 }}>{card.icon}</div>
+                <div style={{ fontWeight:800, fontSize:14, marginBottom:5, lineHeight:1.3 }}>{card.name}</div>
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.72)", lineHeight:1.5 }}>{card.desc}</div>
+                <div style={{
+                  marginTop:14, display:"inline-flex", alignItems:"center", gap:4,
+                  background:"rgba(255,255,255,0.15)", borderRadius:999,
+                  padding:"4px 12px", fontSize:10, fontWeight:700
+                }}>{card.external ? "Visit ↗" : "Open →"}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── System & Community ── */}
+        <div style={{ marginBottom:28 }}>
+          <div style={{
+            display:"flex", alignItems:"center", gap:8, marginBottom:16
+          }}>
+            <div style={{ width:4, height:20, borderRadius:4, background:"linear-gradient(180deg,#0369a1,#7dd3fc)" }} />
+            <div style={{ fontSize:12, fontWeight:800, color:"#0f172a", letterSpacing:2, textTransform:"uppercase" }}>System & Community</div>
+            <div style={{ flex:1, height:1, background:"rgba(3,105,161,0.12)" }} />
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:14 }}>
+            {systemCards.map((card, i) => (
+              <div
+                key={`sys-${i}`}
+                onClick={() => (card.external ? window.open(card.path, "_blank") : navigate(card.path))}
+                style={{
+                  background: card.bg,
+                  borderRadius:20, padding:"20px 16px",
+                  cursor:"pointer", color:"#fff",
+                  boxShadow:`0 4px 20px rgba(0,0,0,0.18)`,
+                  transition:"transform 0.15s ease, box-shadow 0.15s ease",
+                  border:`1px solid rgba(255,255,255,0.12)`,
+                  position:"relative", overflow:"hidden"
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.25)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.18)"; }}
+                onTouchStart={e => { e.currentTarget.style.transform="scale(0.97)"; }}
+                onTouchEnd={e => { e.currentTarget.style.transform="scale(1)"; }}
+              >
+                <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.06)", pointerEvents:"none" }} />
+                <div style={{ fontSize:28, marginBottom:10 }}>{card.icon}</div>
+                <div style={{ fontWeight:800, fontSize:14, marginBottom:5, lineHeight:1.3 }}>{card.name}</div>
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.72)", lineHeight:1.5 }}>{card.desc}</div>
+                <div style={{
+                  marginTop:14, display:"inline-flex", alignItems:"center", gap:4,
+                  background:"rgba(255,255,255,0.15)", borderRadius:999,
+                  padding:"4px 12px", fontSize:10, fontWeight:700
+                }}>Open →</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Resources & Education ── */}
+        <div style={{ marginBottom:28 }}>
+          <div style={{
+            display:"flex", alignItems:"center", gap:8, marginBottom:16
+          }}>
+            <div style={{ width:4, height:20, borderRadius:4, background:"linear-gradient(180deg,#b45309,#fbbf24)" }} />
+            <div style={{ fontSize:12, fontWeight:800, color:"#0f172a", letterSpacing:2, textTransform:"uppercase" }}>Resources & Intelligence Feeds</div>
+            <div style={{ flex:1, height:1, background:"rgba(180,83,9,0.12)" }} />
+          </div>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:14 }}>
+            {resourceCards.map((card, i) => (
+              <div
+                key={`res-${i}`}
+                onClick={() => (card.external ? window.open(card.path, "_blank") : navigate(card.path))}
+                style={{
+                  background: card.bg,
+                  borderRadius:20, padding:"20px 16px",
+                  cursor:"pointer", color:"#fff",
+                  boxShadow:`0 4px 20px rgba(0,0,0,0.18)`,
+                  transition:"transform 0.15s ease, box-shadow 0.15s ease",
+                  border:`1px solid rgba(255,255,255,0.12)`,
+                  position:"relative", overflow:"hidden"
+                }}
+                onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.25)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.18)"; }}
+                onTouchStart={e => { e.currentTarget.style.transform="scale(0.97)"; }}
+                onTouchEnd={e => { e.currentTarget.style.transform="scale(1)"; }}
+              >
+                <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.06)", pointerEvents:"none" }} />
+                <div style={{ fontSize:28, marginBottom:10 }}>{card.icon}</div>
+                <div style={{ fontWeight:800, fontSize:14, marginBottom:5, lineHeight:1.3 }}>{card.name}</div>
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.72)", lineHeight:1.5 }}>{card.desc}</div>
+                <div style={{
+                  marginTop:14, display:"inline-flex", alignItems:"center", gap:4,
+                  background:"rgba(255,255,255,0.15)", borderRadius:999,
+                  padding:"4px 12px", fontSize:10, fontWeight:700
+                }}>Visit ↗</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Custom Admin Cards (if any) ── */}
+        {customCards.length > 0 && (
+          <div style={{ marginBottom:28 }}>
+            <div style={{
+              display:"flex", alignItems:"center", gap:8, marginBottom:16
+            }}>
+              <div style={{ width:4, height:20, borderRadius:4, background:"linear-gradient(180deg,#64748b,#94a3b8)" }} />
+              <div style={{ fontSize:12, fontWeight:800, color:"#0f172a", letterSpacing:2, textTransform:"uppercase" }}>Custom Modules</div>
+              <div style={{ flex:1, height:1, background:"rgba(100,116,139,0.12)" }} />
+            </div>
+            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))", gap:14 }}>
+              {customCards.map((card, i) => (
+                <div
+                  key={`custom-${i}`}
+                  onClick={() => (card.external ? window.open(card.path, "_blank") : navigate(card.path))}
+                  style={{
+                    background: card.bg,
+                    borderRadius:20, padding:"20px 16px",
+                    cursor:"pointer", color:"#fff",
+                    boxShadow:`0 4px 20px rgba(0,0,0,0.18)`,
+                    transition:"transform 0.15s ease, box-shadow 0.15s ease",
+                    border:`1px solid rgba(255,255,255,0.12)`,
+                    position:"relative", overflow:"hidden"
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform="translateY(-3px)"; e.currentTarget.style.boxShadow="0 8px 32px rgba(0,0,0,0.25)"; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform="translateY(0)"; e.currentTarget.style.boxShadow="0 4px 20px rgba(0,0,0,0.18)"; }}
+                  onTouchStart={e => { e.currentTarget.style.transform="scale(0.97)"; }}
+                  onTouchEnd={e => { e.currentTarget.style.transform="scale(1)"; }}
+                >
+                  <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:"rgba(255,255,255,0.06)", pointerEvents:"none" }} />
+                  <div style={{ fontSize:28, marginBottom:10 }}>{card.icon}</div>
+                  <div style={{ fontWeight:800, fontSize:14, marginBottom:5, lineHeight:1.3 }}>{card.name}</div>
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.72)", lineHeight:1.5 }}>{card.desc}</div>
+                  <div style={{
+                    marginTop:14, display:"inline-flex", alignItems:"center", gap:4,
+                    background:"rgba(255,255,255,0.15)", borderRadius:999,
+                    padding:"4px 12px", fontSize:10, fontWeight:700
+                  }}>{card.external ? "Visit ↗" : "Open →"}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* Footer */}
@@ -278,15 +472,12 @@ export default function Home() {
         <div style={{ fontWeight:700, color:"#64748b", marginBottom:4 }}>
           🛡️ SecureCheck AI · Built by <span style={{ color:"#4f46e5" }}>Suleiman Alhassan</span>
         </div>
-        <div>📞 +233 599 931 348 &nbsp;|&nbsp; +233 248 503 631</div>
+        <div style={{ color:"#94a3b8" }}>+233 599 931 348 · Cyber-Zero Intelligence Platform</div>
       </div>
 
       <style>{`
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-        * { box-sizing: border-box; }
       `}</style>
     </div>
   );
 }
-
-
