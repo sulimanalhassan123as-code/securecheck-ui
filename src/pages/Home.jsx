@@ -75,6 +75,7 @@ export default function Home() {
   const aiCards = [
     { name: "AI Assistant",             path: "/ai",         icon: "🤖", desc: "Never Hide AI — neural security intelligence & code review.",  bg: "#6d28d9", accent: "#c4b5fd" },
     { name: "ScamWatch Ghana",            path: "https://scamwatch-ghana.vercel.app", icon: "⚠️", desc: "Report & verify scams. Community-driven fraud alerts.",  bg: "#b45309", accent: "#fbbf24", external: true },
+    { name: "Cyber-Zero Guardian",      path: "/cyber-ai",   icon: "🛡️", desc: "Specialized cybersecurity AI - scams, MoMo fraud, recovery, hardening.", bg: "#065f46", accent: "#34d399" },
   ];
 
   // ── System & community tools ──

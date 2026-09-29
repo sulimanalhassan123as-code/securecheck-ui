@@ -9,6 +9,7 @@ import DomainIntelligence from "./pages/DomainIntelligence";
 import ApiIntelligence from "./pages/ApiIntelligence";
 import SystemManagement from "./pages/SystemManagement";
 import AiAssistant from "./pages/AiAssistant";
+import CyberAI from "./pages/CyberAI";
 import Community from "./pages/Community";
 import AdminOps from "./pages/AdminOps";
 import HelpContact from "./pages/HelpContact";
@@ -28,6 +29,7 @@ export default function Router() {
         <Route path="/payment" element={<Navigate to="/admin-ops" replace />} />
         <Route path="/system" element={<SystemManagement />} />
         <Route path="/ai" element={<AiAssistant />} />
+            <Route path="/cyber-ai" element={<CyberAI />} />
         <Route path="/community" element={<Community />} />
         <Route path="/help" element={<HelpContact />} />
         <Route path="/admin-ops" element={<AdminOps />} />
